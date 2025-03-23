@@ -1,58 +1,75 @@
+using GameTable;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
 public class LineConnector : MonoBehaviour, IPointerUpHandler
 {
-    private LineRenderer lineRenderer;
-    private bool isDrawing = false;
+    private LineRenderer _lineRenderer;
+    private GridManager _gridManager;
+    private bool _isDrawing = false;
 
     private void Start()
     {
+        _gridManager = GameObject.FindAnyObjectByType<GridManager>();
+
         GameObject lineObj = new GameObject("DynamicLine");
-        lineRenderer = lineObj.AddComponent<LineRenderer>();
+        _lineRenderer = lineObj.AddComponent<LineRenderer>();
 
-        lineRenderer.sortingLayerName = "Card";
-        lineRenderer.sortingOrder = 2;
+        _lineRenderer.sortingLayerName = "Card";
+        _lineRenderer.sortingOrder = 2;
 
-        lineRenderer.startWidth = 0.1f;
-        lineRenderer.endWidth = 0.1f;
-        lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
-        lineRenderer.startColor = Color.white;
-        lineRenderer.endColor = Color.white;
-        lineRenderer.positionCount = 2;
+        _lineRenderer.startWidth = 0.1f;
+        _lineRenderer.endWidth = 0.1f;
+        _lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+        _lineRenderer.startColor = Color.white;
+        _lineRenderer.endColor = Color.white;
     }
 
     private void Update()
     {
-        if (isDrawing)
+        if (_isDrawing)
         {
             Vector3 mousePosition = Input.mousePosition;
             mousePosition.z = 0f;
-            lineRenderer.SetPosition(1, Camera.main.ScreenToWorldPoint( mousePosition));
+            Vector3 worldMousePosition = Camera.main.ScreenToWorldPoint(mousePosition);
+            worldMousePosition.z = 0f;
+
+            List<Vector3> path = _gridManager.FindPath(transform.position, worldMousePosition);
+
+            if (path.Count > 0)
+            {
+                _lineRenderer.positionCount = path.Count;
+                _lineRenderer.SetPositions(path.ToArray());
+            }
         }
     }
 
     public void CanDrowLine()
     {
-        isDrawing = true;
-
-        lineRenderer.SetPosition(0, transform.position);
-        lineRenderer.SetPosition(1, transform.position);
+        _isDrawing = true;
+        _lineRenderer.positionCount = 2;
+        _lineRenderer.SetPosition(0, transform.position);
+        _lineRenderer.SetPosition(1, transform.position);
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        isDrawing = false;
+        _isDrawing = false;
 
-        LineConnector targetButton = GetButtonUnderCursor(eventData);
-        if (targetButton != null && targetButton != this)
+        Vector3 mousePosition = Input.mousePosition;
+        mousePosition.z = 0f;
+        Vector3 worldMousePosition = Camera.main.ScreenToWorldPoint(mousePosition);
+        worldMousePosition.z = 0f;
+
+        List<Vector3> path = _gridManager.FindPath(transform.position, worldMousePosition);
+
+        Debug.Log(path.Count);
+
+        if (path.Count > 0)
         {
-            lineRenderer.SetPosition(1, targetButton.gameObject.transform.position);
-        }
-        else
-        {
-            Destroy(lineRenderer.gameObject);
+            _lineRenderer.positionCount = path.Count;
+            _lineRenderer.SetPositions(path.ToArray());
         }
     }
 
