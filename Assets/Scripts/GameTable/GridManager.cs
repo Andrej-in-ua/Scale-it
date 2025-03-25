@@ -22,6 +22,7 @@ namespace GameTable
             if (IsOccupied(objectID, gridPos, objectSize, _padding, true))
             {
                 var newGridPos = FindNearestAvailablePosition(objectID, gridPos, objectSize, _padding);
+
                 if (!newGridPos.HasValue)
                 {
                     return null;
@@ -32,13 +33,16 @@ namespace GameTable
 
             RemoveFromGrid(objectID);
             PlaceObjectOnGrid(objectID, gridPos, objectSize);
+
             return GridToCord(gridPos);
         }
 
         private void RemoveFromGrid(int objectID)
         {
             if (!_objectInGrid.ContainsKey(objectID))
+            {
                 return;
+            }
 
             foreach (var cell in _objectInGrid[objectID])
             {
@@ -124,7 +128,9 @@ namespace GameTable
         private void PlaceObjectOnGrid(int objectID, Vector2Int gridPos, Vector2 objectSize)
         {
             if (!_objectInGrid.ContainsKey(objectID))
+            {
                 _objectInGrid[objectID] = new List<Vector2Int>();
+            }
 
             for (int i = gridPos.x; i < gridPos.x + objectSize.x; i++)
             {
@@ -139,8 +145,11 @@ namespace GameTable
 
         public List<Vector3> FindPath(Vector2 A, Vector2 B)
         {
-            Vector2Int start = CordToGridForLine(A);
-            Vector2Int goal = CordToGridForLine(B);
+            Vector2Int startGrid = CordToGridForLine(A);
+            Vector2Int goalGrid = CordToGridForLine(B);
+
+            Vector2Int start = FindNearestFreeCell(startGrid);
+            Vector2Int goal = FindNearestFreeCell(goalGrid);
 
             PriorityQueue<Vector2Int> openSet = new PriorityQueue<Vector2Int>();
             HashSet<Vector2Int> openSetHash = new HashSet<Vector2Int>();
@@ -153,26 +162,29 @@ namespace GameTable
             gScore[start] = 0;
             fScore[start] = Heuristic(start, goal);
 
-            Vector2Int[] directions = {
-        Vector2Int.right, Vector2Int.left, Vector2Int.up, Vector2Int.down,
-    };
-
-            int iterationLimit = 10000;
-            int iterations = 0;
+            Vector2Int[] directions = { Vector2Int.right, Vector2Int.left, Vector2Int.up, Vector2Int.down };
 
             while (openSet.Count > 0)
             {
-                if (iterations++ > iterationLimit)
-                {
-                    Debug.LogWarning("Caput!");
-                    return new List<Vector3>();
-                }
-
                 Vector2Int current = openSet.Dequeue();
                 openSetHash.Remove(current);
 
                 if (current == goal)
-                    return ReconstructPath(cameFrom, current);
+                {
+                    List<Vector3> path = ReconstructPath(cameFrom, current);
+
+                    if (start != startGrid)
+                    {
+                        path.Insert(0, GridToCordForLine(startGrid));
+                    }
+
+                    if (goal != goalGrid)
+                    {
+                        path.Add(GridToCordForLine(goalGrid));
+                    }
+
+                    return path;
+                }
 
                 foreach (Vector2Int direction in directions)
                 {
@@ -180,7 +192,6 @@ namespace GameTable
 
                     if (IsOccupied(0, neighbor, new Vector2Int(1, 1), 0, false))
                     {
-                        // Debug.Log("ok");
                         continue;
                     }
 
@@ -204,6 +215,47 @@ namespace GameTable
             return new List<Vector3>();
         }
 
+        private Vector2Int FindNearestFreeCell(Vector2Int start)
+        {
+            if (!IsOccupied(0, start, new Vector2Int(1, 1), 0, false))
+            {
+                return start;
+            }
+
+            Vector2Int[] directions = { Vector2Int.right, Vector2Int.left, Vector2Int.up, Vector2Int.down };
+
+            Queue<Vector2Int> queue = new Queue<Vector2Int>();
+            HashSet<Vector2Int> visited = new HashSet<Vector2Int>();
+
+            queue.Enqueue(start);
+            visited.Add(start);
+
+            while (queue.Count > 0)
+            {
+                Vector2Int current = queue.Dequeue();
+
+                foreach (Vector2Int dir in directions)
+                {
+                    Vector2Int neighbor = current + dir;
+
+                    if (visited.Contains(neighbor))
+                    {
+                        continue;
+                    }
+
+                    if (!IsOccupied(0, neighbor, new Vector2Int(1, 1), 0, false))
+                    {
+                        return neighbor;
+                    }
+
+                    queue.Enqueue(neighbor);
+                    visited.Add(neighbor);
+                }
+            }
+
+            return start;
+        }
+
         float Heuristic(Vector2Int a, Vector2Int b)
         {
             return Vector2Int.Distance(a, b);
@@ -223,33 +275,27 @@ namespace GameTable
             return path;
         }
 
-        private Vector2Int CordToGridForLine(Vector2 pos)
-        {
-            Vector2Int gridPos = new Vector2Int(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y));
-
-            return gridPos;
-        }
-
         private Vector2Int CordToGrid(Vector2 position)
         {
-            return new Vector2Int(
-                Mathf.FloorToInt(position.x / _gridSize),
-                Mathf.FloorToInt(position.y / _gridSize)
-            );
+            return new Vector2Int(Mathf.FloorToInt(position.x / _gridSize), Mathf.FloorToInt(position.y / _gridSize));
         }
 
         private Vector2 GridToCord(Vector2Int gridPos)
         {
-            return new Vector2(
-                (gridPos.x * _gridSize) + (_gridSize / 2),
-                (gridPos.y * _gridSize) + (_gridSize / 2)
-            );
+            return new Vector2((gridPos.x * _gridSize) + (_gridSize / 2), (gridPos.y * _gridSize) + (_gridSize / 2));
+        }
+        private Vector2Int CordToGridForLine(Vector2 pos)
+        {
+            Vector2Int gridPos = new Vector2Int(Mathf.FloorToInt(pos.x), Mathf.FloorToInt(pos.y));
+
+            return gridPos;
         }
 
         private Vector3 GridToCordForLine(Vector2Int gridPos)
         {
-            float cellSize = 1f;
-            return new Vector3(gridPos.x * cellSize + cellSize / 2, gridPos.y * cellSize + cellSize / 2, 0);
+            Vector3 Pos = GridToCord(gridPos);
+
+            return new Vector3(Pos.x / _gridSize, Pos.y / _gridSize, 0);
         }
     }
 }
