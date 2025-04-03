@@ -1157,7 +1157,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _portType: 0
-  _linePrefab: {fileID: 0}
+  _linePrefab: {fileID: 1320537691080220353, guid: 3b869bda818b2e54d80adccd1e4150d3, type: 3}
 --- !u!114 &1569074127
 MonoBehaviour:
   m_ObjectHideFlags: 0
