@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using UnityEngine;
 
 namespace GameTable
@@ -20,7 +19,7 @@ namespace GameTable
 
             var gridPos = CordToGrid(position);
 
-            if (IsOccupied(objectID, gridPos, objectSize, _padding, true))
+            if (IsOccupied(objectID, gridPos, objectSize, _padding))
             {
                 var newGridPos = FindNearestAvailablePosition(objectID, gridPos, objectSize, _padding);
 
@@ -78,7 +77,7 @@ namespace GameTable
                 {
                     Vector2Int currentPos = searchQueue.Dequeue();
 
-                    if (!IsOccupied(objectID, currentPos, objectSize, padding, true))
+                    if (!IsOccupied(objectID, currentPos, objectSize, padding))
                     {
                         return currentPos;
                     }
@@ -99,7 +98,7 @@ namespace GameTable
             return null;
         }
 
-        private bool IsOccupied(int objectID, Vector2Int gridPos, Vector2Int size, int padding, bool isCard)
+        private bool IsOccupied(int objectID, Vector2Int gridPos, Vector2Int size, int padding)
         {
             Vector2Int cell = Vector2Int.zero;
 
@@ -107,14 +106,7 @@ namespace GameTable
             {
                 for (int j = gridPos.y - padding; j < gridPos.y + size.y + padding; j++)
                 {
-                    if (isCard)
-                    {
-                        cell = new Vector2Int(i, j);
-                    }
-                    else
-                    {
-                        cell = new Vector2Int(i + 2, j + 3);
-                    }
+                    cell = new Vector2Int(i, j);
 
                     if (_grid.ContainsKey(cell) && _grid[cell] != objectID)
                     {
@@ -312,7 +304,7 @@ namespace GameTable
         }
 
         private bool IsCellOccupied(Vector2Int gridPosition) =>
-            IsOccupied(0, gridPosition, new Vector2Int(1, 1), 0, false);
+            IsOccupied(0, new Vector2Int(gridPosition.x + 2, gridPosition.y + 3), new Vector2Int(1, 1), 0);
 
         private Vector2Int CordToGrid(Vector2 position)
         {
