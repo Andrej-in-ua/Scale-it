@@ -20,6 +20,10 @@ public class LineConnector : MonoBehaviour, IPointerUpHandler
     private GridManager _gridManager;
     private bool _isDrawing = false;
 
+    private Vector3 _lastStartPos;
+    private Vector3 _lastEndPos;
+    private List<Vector3> _currentPath = new();
+
     private void Start()
     {
         _gridManager = FindAnyObjectByType<GridManager>();
@@ -34,12 +38,22 @@ public class LineConnector : MonoBehaviour, IPointerUpHandler
             Vector3 worldMousePosition = Camera.main.ScreenToWorldPoint(mousePosition);
             worldMousePosition.z = 0f;
 
-            List<Vector3> path = _gridManager.FindPath(transform.position, worldMousePosition);
+            Vector3 currentStart = transform.position;
+            Vector3 currentEnd = worldMousePosition;
 
-            if (path.Count > 0)
+            if (Vector3.Distance(_lastStartPos, currentStart) > 0.5f ||
+                Vector3.Distance(_lastEndPos, currentEnd) > 0.5f)
             {
-                _lineRenderer.positionCount = path.Count;
-                _lineRenderer.SetPositions(path.ToArray());
+                _lastStartPos = currentStart;
+                _lastEndPos = currentEnd;
+
+                _currentPath = _gridManager.FindPath(currentStart, currentEnd);
+            }
+
+            if (_currentPath.Count > 0)
+            {
+                _lineRenderer.positionCount = _currentPath.Count;
+                _lineRenderer.SetPositions(_currentPath.ToArray());
             }
         }
     }

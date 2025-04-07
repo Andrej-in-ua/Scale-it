@@ -146,25 +146,16 @@ namespace GameTable
 
         public List<Vector3> FindPath(Vector2 startPoint, Vector2 endPoint)
         {
-            Vector2Int startGrid = CordToGridForLine(startPoint);
-            Vector2Int goalGrid = CordToGridForLine(endPoint);
-
-            Vector2Int startNode = FindNearestFreeCell(startGrid);
-            Vector2Int goalNode = FindNearestFreeCell(goalGrid);
+            var startGrid = CordToGridForLine(startPoint);
+            var goalGrid = CordToGridForLine(endPoint);
+            var startNode = FindNearestFreeCell(startGrid);
+            var goalNode = FindNearestFreeCell(goalGrid);
 
             var path = FindPathAStar(startNode, goalNode);
-
             path = OptimizePath(path);
 
-            if (startNode != startGrid)
-            {
-                path.Insert(0, GridToCordForLine(startGrid));
-            }
-
-            if (goalNode != goalGrid)
-            {
-                path.Add(GridToCordForLine(goalGrid));
-            }
+            if (startNode != startGrid) path.Insert(0, GridToCordForLine(startGrid));
+            if (goalNode != goalGrid) path.Add(GridToCordForLine(goalGrid));
 
             return path;
         }
@@ -172,185 +163,95 @@ namespace GameTable
         private List<Vector3> FindPathAStar(Vector2Int start, Vector2Int goal)
         {
             var openSet = new PriorityQueue<Vector2Int>();
-            var openSetHash = new HashSet<Vector2Int>();
+            var openSetHash = new HashSet<Vector2Int> { start };
             var cameFrom = new Dictionary<Vector2Int, Vector2Int>();
-            var gScore = new Dictionary<Vector2Int, float>();
-            var fScore = new Dictionary<Vector2Int, float>();
+            var gScore = new Dictionary<Vector2Int, float> { [start] = 0 };
+            var fScore = new Dictionary<Vector2Int, float> { [start] = Vector2Int.Distance(start, goal) };
 
-            InitializeSearch(start, goal, openSet, openSetHash, gScore, fScore);
-
-            Vector2Int[] directions = { Vector2Int.right, Vector2Int.left, Vector2Int.up, Vector2Int.down };
+            openSet.Enqueue(start, 0);
+            var directions = new[] { Vector2Int.right, Vector2Int.left, Vector2Int.up, Vector2Int.down };
 
             while (openSet.Count > 0)
             {
-                Vector2Int current = openSet.Dequeue();
+                var current = openSet.Dequeue();
                 openSetHash.Remove(current);
+                if (current == goal) return ReconstructPath(cameFrom, current);
 
-                if (current == goal)
+                foreach (var dir in directions)
                 {
-                    return ReconstructPath(cameFrom, current);
-                }
+                    var neighbor = current + dir;
+                    if (IsCellOccupied(neighbor)) continue;
 
-                ExploreNeighbors(current, goal, directions, openSet, openSetHash, cameFrom, gScore, fScore);
-            }
+                    float tentativeG = gScore[current] + 1;
+                    if (!gScore.ContainsKey(neighbor) || tentativeG < gScore[neighbor])
+                    {
+                        cameFrom[neighbor] = current;
+                        gScore[neighbor] = tentativeG;
+                        fScore[neighbor] = tentativeG + Vector2Int.Distance(neighbor, goal);
 
-            return new List<Vector3>();
-        }
-
-        private void InitializeSearch(Vector2Int start, Vector2Int goal,
-            PriorityQueue<Vector2Int> openSet, HashSet<Vector2Int> openSetHash,
-            Dictionary<Vector2Int, float> gScore, Dictionary<Vector2Int, float> fScore)
-        {
-            openSet.Enqueue(start, 0);
-            openSetHash.Add(start);
-            gScore[start] = 0;
-            fScore[start] = Vector2Int.Distance(start, goal);
-        }
-
-        private void ExploreNeighbors(Vector2Int current, Vector2Int goal, Vector2Int[] directions,
-            PriorityQueue<Vector2Int> openSet, HashSet<Vector2Int> openSetHash,
-            Dictionary<Vector2Int, Vector2Int> cameFrom, Dictionary<Vector2Int, float> gScore,
-            Dictionary<Vector2Int, float> fScore)
-        {
-            foreach (Vector2Int direction in directions)
-            {
-                Vector2Int neighbor = current + direction;
-
-                if (IsCellOccupied(neighbor))
-                {
-                    continue;
-                }
-
-                float tentativeGScore = gScore[current] + 1;
-
-                if (!gScore.ContainsKey(neighbor) || tentativeGScore < gScore[neighbor])
-                {
-                    UpdateNode(neighbor, current, tentativeGScore, goal,
-                        openSet, openSetHash, cameFrom, gScore, fScore);
+                        if (openSetHash.Add(neighbor))
+                            openSet.Enqueue(neighbor, fScore[neighbor]);
+                    }
                 }
             }
-        }
-
-        private void UpdateNode(Vector2Int neighbor, Vector2Int current, float tentativeGScore, Vector2Int goal,
-            PriorityQueue<Vector2Int> openSet, HashSet<Vector2Int> openSetHash,
-            Dictionary<Vector2Int, Vector2Int> cameFrom, Dictionary<Vector2Int, float> gScore,
-            Dictionary<Vector2Int, float> fScore)
-        {
-            cameFrom[neighbor] = current;
-            gScore[neighbor] = tentativeGScore;
-            fScore[neighbor] = tentativeGScore + Vector2Int.Distance(neighbor, goal);
-
-            if (!openSetHash.Contains(neighbor))
-            {
-                openSet.Enqueue(neighbor, fScore[neighbor]);
-                openSetHash.Add(neighbor);
-            }
+            return new();
         }
 
         private List<Vector3> OptimizePath(List<Vector3> path)
         {
-            if (path == null || path.Count < 3)
-                return path;
+            if (path == null || path.Count < 3) return path;
 
-            List<Vector3> optimizedPath = new List<Vector3>();
-            optimizedPath.Add(path[0]);
-
+            var result = new List<Vector3> { path[0] };
             int i = 0;
+
             while (i < path.Count - 1)
             {
-                Vector3 startPoint = optimizedPath[optimizedPath.Count - 1];
-                int bestEndIndex = i + 1;
+                var start = result[^1];
                 bool optimized = false;
-                Vector3? bestMidPoint = null;
-                Vector3? bestEndPoint = null;
-                float shortestDistance = float.MaxValue;
 
-                for (int lookahead = Mathf.Min(path.Count, path.Count - i - 1); lookahead >= 2; lookahead--)
+                for (int lookahead = path.Count - 1; lookahead > i + 1; lookahead--)
                 {
-                    int currentEnd = i + lookahead;
-                    if (currentEnd >= path.Count)
-                        continue;
+                    var end = path[lookahead];
+                    if (Mathf.Approximately(start.x, end.x) || Mathf.Approximately(start.y, end.y)) continue;
 
-                    Vector3 endPoint = path[currentEnd];
-                    float totalX = endPoint.x - startPoint.x;
-                    float totalY = endPoint.y - startPoint.y;
-
-                    if (Mathf.Abs(totalX) > 0.1f && Mathf.Abs(totalY) > 0.1f)
+                    foreach (var mid in new[] { new Vector3(end.x, start.y, start.z), new Vector3(start.x, end.y, start.z) })
                     {
-                        Vector3[] midVariants = new Vector3[]
+                        if (IsPathCompletelyClear(start, mid) && IsPathCompletelyClear(mid, end))
                         {
-                    new Vector3(endPoint.x, startPoint.y, startPoint.z),
-                    new Vector3(startPoint.x, endPoint.y, startPoint.z)
-                        };
-
-                        foreach (var midPoint in midVariants)
-                        {
-                            if (IsPathCompletelyClear(startPoint, midPoint) &&
-                                IsPathCompletelyClear(midPoint, endPoint))
-                            {
-                                float distance = Vector3.Distance(startPoint, midPoint) + Vector3.Distance(midPoint, endPoint);
-                                if (distance < shortestDistance)
-                                {
-                                    bestMidPoint = midPoint;
-                                    bestEndPoint = endPoint;
-                                    shortestDistance = distance;
-                                    bestEndIndex = currentEnd;
-                                    optimized = true;
-                                }
-                            }
-                        }
-
-                        if (optimized)
+                            result.Add(mid);
+                            result.Add(end);
+                            i = lookahead;
+                            optimized = true;
                             break;
+                        }
                     }
+                    if (optimized) break;
                 }
 
-                if (optimized && bestMidPoint.HasValue && bestEndPoint.HasValue)
+                if (!optimized)
                 {
-                    optimizedPath.Add(bestMidPoint.Value);
-                    optimizedPath.Add(bestEndPoint.Value);
-                    i = bestEndIndex;
-                }
-                else
-                {
-                    optimizedPath.Add(path[i + 1]);
+                    result.Add(path[i + 1]);
                     i++;
                 }
             }
 
-            return optimizedPath;
+            return result;
         }
 
         private bool IsPathCompletelyClear(Vector3 start, Vector3 end)
         {
-            Vector2 startGrid = new Vector2(start.x, start.y);
-            Vector2 endGrid = new Vector2(end.x, end.y);
-            int steps = Mathf.CeilToInt(Vector2.Distance(startGrid, endGrid) * 4);
+            var s = new Vector2(start.x, start.y);
+            var e = new Vector2(end.x, end.y);
+            var dist = Vector2.Distance(s, e);
+            int steps = Mathf.CeilToInt(dist);
 
-            bool useBuffer = Vector2.Distance(startGrid, endGrid) <= 3f;
+            Vector2 dir = (e - s).normalized;
 
             for (int i = 0; i <= steps; i++)
             {
-                float t = (float)i / steps;
-                Vector2 point = Vector2.Lerp(startGrid, endGrid, t);
-                Vector2Int gridPos = new Vector2Int(Mathf.FloorToInt(point.x), Mathf.FloorToInt(point.y));
-
-                if (IsCellOccupied(gridPos))
-                    return false;
-
-                if (useBuffer)
-                {
-                    Vector2 direction = (endGrid - startGrid).normalized;
-                    Vector2 perp = new Vector2(-direction.y, direction.x);
-
-                    for (float offset = -0.01f; offset <= 0.01f; offset += 0.01f)
-                    {
-                        Vector2 sidePoint = point + perp * offset;
-                        Vector2Int sideGrid = new Vector2Int(Mathf.FloorToInt(sidePoint.x), Mathf.FloorToInt(sidePoint.y));
-                        if (IsCellOccupied(sideGrid))
-                            return false;
-                    }
-                }
+                var point = s + dir * i;
+                var grid = new Vector2Int(Mathf.FloorToInt(point.x), Mathf.FloorToInt(point.y));
+                if (IsCellOccupied(grid)) return false;
             }
 
             return true;
