@@ -250,92 +250,106 @@ namespace GameTable
         private List<Vector3> OptimizePath(List<Vector3> path)
         {
             if (path == null || path.Count < 3)
-            {
                 return path;
-            }
 
-            var optimizedPath = new List<Vector3> { path[0] };
-            int currentIndex = 0;
+            List<Vector3> optimizedPath = new List<Vector3>();
+            optimizedPath.Add(path[0]);
 
-            while (currentIndex < path.Count - 1)
+            int i = 0;
+            while (i < path.Count - 1)
             {
-                Vector3 startPoint = optimizedPath.Last();
+                Vector3 startPoint = optimizedPath[optimizedPath.Count - 1];
+                int bestEndIndex = i + 1;
+                bool optimized = false;
+                Vector3? bestMidPoint = null;
+                Vector3? bestEndPoint = null;
+                float shortestDistance = float.MaxValue;
 
-                if (path.Count - currentIndex <= 3)
+                for (int lookahead = Mathf.Min(path.Count, path.Count - i - 1); lookahead >= 2; lookahead--)
                 {
-                    optimizedPath.Add(path[currentIndex + 1]);
-                    currentIndex++;
-                    continue;
+                    int currentEnd = i + lookahead;
+                    if (currentEnd >= path.Count)
+                        continue;
+
+                    Vector3 endPoint = path[currentEnd];
+                    float totalX = endPoint.x - startPoint.x;
+                    float totalY = endPoint.y - startPoint.y;
+
+                    if (Mathf.Abs(totalX) > 0.1f && Mathf.Abs(totalY) > 0.1f)
+                    {
+                        Vector3[] midVariants = new Vector3[]
+                        {
+                    new Vector3(endPoint.x, startPoint.y, startPoint.z),
+                    new Vector3(startPoint.x, endPoint.y, startPoint.z)
+                        };
+
+                        foreach (var midPoint in midVariants)
+                        {
+                            if (IsPathCompletelyClear(startPoint, midPoint) &&
+                                IsPathCompletelyClear(midPoint, endPoint))
+                            {
+                                float distance = Vector3.Distance(startPoint, midPoint) + Vector3.Distance(midPoint, endPoint);
+                                if (distance < shortestDistance)
+                                {
+                                    bestMidPoint = midPoint;
+                                    bestEndPoint = endPoint;
+                                    shortestDistance = distance;
+                                    bestEndIndex = currentEnd;
+                                    optimized = true;
+                                }
+                            }
+                        }
+
+                        if (optimized)
+                            break;
+                    }
                 }
 
-                int bestSegmentEnd = FindLongestStaircaseSegment(path, currentIndex);
-
-                if (bestSegmentEnd > currentIndex + 3 && TryAddOptimizedSegment(startPoint, path[bestSegmentEnd], optimizedPath))
+                if (optimized && bestMidPoint.HasValue && bestEndPoint.HasValue)
                 {
-                    currentIndex = bestSegmentEnd;
+                    optimizedPath.Add(bestMidPoint.Value);
+                    optimizedPath.Add(bestEndPoint.Value);
+                    i = bestEndIndex;
                 }
                 else
                 {
-                    optimizedPath.Add(path[currentIndex + 1]);
-                    currentIndex++;
+                    optimizedPath.Add(path[i + 1]);
+                    i++;
                 }
             }
 
             return optimizedPath;
         }
 
-        private bool TryAddOptimizedSegment(Vector3 startPoint, Vector3 endPoint, List<Vector3> optimizedPath)
+        private bool IsPathCompletelyClear(Vector3 start, Vector3 end)
         {
-            Vector3 midPoint = new Vector3(endPoint.x, startPoint.y, startPoint.z);
+            Vector2 startGrid = new Vector2(start.x, start.y);
+            Vector2 endGrid = new Vector2(end.x, end.y);
+            int steps = Mathf.CeilToInt(Vector2.Distance(startGrid, endGrid) * 4);
 
-            if (IsSegmentClear(startPoint, midPoint) && IsSegmentClear(midPoint, endPoint))
-            {
-                optimizedPath.Add(midPoint);
-                optimizedPath.Add(endPoint);
-                return true;
-            }
+            bool useBuffer = Vector2.Distance(startGrid, endGrid) <= 3f;
 
-            return false;
-        }
-
-        private int FindLongestStaircaseSegment(List<Vector3> path, int startIndex)
-        {
-            int bestEnd = startIndex + 1;
-            bool isXMovement = Mathf.Abs(path[startIndex + 1].x - path[startIndex].x) > 0.1f;
-
-            for (int j = startIndex + 1; j < path.Count; j++)
-            {
-                Vector3 delta = path[j] - path[j - 1];
-                bool shouldBeXMovement = (j - startIndex) % 2 == 1 ? isXMovement : !isXMovement;
-
-                bool isValidMove = shouldBeXMovement
-                    ? Mathf.Abs(delta.x) > 0.1f && Mathf.Abs(delta.y) < 0.1f
-                    : Mathf.Abs(delta.y) > 0.1f && Mathf.Abs(delta.x) < 0.1f;
-
-                if (!isValidMove) break;
-
-                bestEnd = j;
-            }
-
-            return (bestEnd - startIndex >= 4) ? bestEnd : startIndex + 1;
-        }
-
-        private bool IsSegmentClear(Vector3 start, Vector3 end)
-        {
-            Vector2Int startGrid = new Vector2Int((int)start.x, (int)start.y);
-            Vector2Int endGrid = new Vector2Int((int)end.x, (int)end.y);
-
-            int steps = Mathf.Max(Mathf.Abs(endGrid.x - startGrid.x), Mathf.Abs(endGrid.y - startGrid.y));
-
-            for (int i = 1; i < steps; i++)
+            for (int i = 0; i <= steps; i++)
             {
                 float t = (float)i / steps;
-                Vector2 checkPoint = Vector2.Lerp(startGrid, endGrid, t);
-                Vector2Int gridPoint = new Vector2Int(Mathf.RoundToInt(checkPoint.x), Mathf.RoundToInt(checkPoint.y));
+                Vector2 point = Vector2.Lerp(startGrid, endGrid, t);
+                Vector2Int gridPos = new Vector2Int(Mathf.FloorToInt(point.x), Mathf.FloorToInt(point.y));
 
-                if (IsCellOccupied(gridPoint))
-                {
+                if (IsCellOccupied(gridPos))
                     return false;
+
+                if (useBuffer)
+                {
+                    Vector2 direction = (endGrid - startGrid).normalized;
+                    Vector2 perp = new Vector2(-direction.y, direction.x);
+
+                    for (float offset = -0.01f; offset <= 0.01f; offset += 0.01f)
+                    {
+                        Vector2 sidePoint = point + perp * offset;
+                        Vector2Int sideGrid = new Vector2Int(Mathf.FloorToInt(sidePoint.x), Mathf.FloorToInt(sidePoint.y));
+                        if (IsCellOccupied(sideGrid))
+                            return false;
+                    }
                 }
             }
 
