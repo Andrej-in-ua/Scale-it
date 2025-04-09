@@ -1,4 +1,3 @@
-using GameTable;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -6,9 +5,7 @@ using UnityEngine.EventSystems;
 public enum PortType
 {
     Input,
-    Output,
-    FromModifier,
-    ForModifier
+    Output
 }
 
 public class LineConnector : MonoBehaviour, IPointerUpHandler
@@ -16,17 +13,20 @@ public class LineConnector : MonoBehaviour, IPointerUpHandler
     [SerializeField] private PortType _portType;
     [SerializeField] private LineRenderer _linePrefab;
 
+    private GameObject _lineParentObject;
+
     private LineRenderer _lineRenderer;
-    private GridManager _gridManager;
+    private LinePathCreation _linePathCreation;
     private bool _isDrawing = false;
 
     private Vector3 _lastStartPos;
     private Vector3 _lastEndPos;
     private List<Vector3> _currentPath = new();
 
-    private void Start()
+    private void Awake()
     {
-        _gridManager = FindAnyObjectByType<GridManager>();
+        _linePathCreation = FindAnyObjectByType<LinePathCreation>();
+        _lineParentObject = FindAnyObjectByType<LinePathCreation>().gameObject;
     }
 
     private void Update()
@@ -47,7 +47,7 @@ public class LineConnector : MonoBehaviour, IPointerUpHandler
                 _lastStartPos = currentStart;
                 _lastEndPos = currentEnd;
 
-                _currentPath = _gridManager.FindPath(currentStart, currentEnd);
+                _currentPath = _linePathCreation.FindPath(currentStart, currentEnd);
             }
 
             if (_currentPath.Count > 0)
@@ -64,10 +64,11 @@ public class LineConnector : MonoBehaviour, IPointerUpHandler
 
         if (_lineRenderer != null)
         {
-            Destroy(_lineRenderer);
+            Destroy(_lineRenderer.gameObject);
         }
 
         _lineRenderer = Instantiate(_linePrefab);
+        _lineRenderer.transform.SetParent(_lineParentObject.transform, true);
     }
 
     public void OnPointerUp(PointerEventData eventData)
@@ -82,7 +83,7 @@ public class LineConnector : MonoBehaviour, IPointerUpHandler
         }
         else
         {
-            Destroy(_lineRenderer);
+            Destroy(_lineRenderer.gameObject);
         }
     }
 
@@ -112,9 +113,7 @@ public class LineConnector : MonoBehaviour, IPointerUpHandler
         var validConnections = new Dictionary<PortType, PortType>
         {
         { PortType.Input, PortType.Output },
-        { PortType.Output, PortType.Input },
-        { PortType.ForModifier, PortType.FromModifier },
-        { PortType.FromModifier, PortType.ForModifier }
+        { PortType.Output, PortType.Input }
         };
 
         if (validConnections.TryGetValue(_portType, out var expectedType) && Connector._portType == expectedType)
@@ -123,7 +122,7 @@ public class LineConnector : MonoBehaviour, IPointerUpHandler
         }
         else
         {
-            Destroy(_lineRenderer);
+            Destroy(_lineRenderer.gameObject);
         }
     }
 }

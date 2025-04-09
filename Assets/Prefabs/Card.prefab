@@ -689,7 +689,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 6739817805461699885, guid: 7b0df7226129d8f46a1833fdbcd9f956, type: 3}
       propertyPath: _portType
-      value: 3
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8174040968528691976, guid: 7b0df7226129d8f46a1833fdbcd9f956, type: 3}
       propertyPath: m_Name
@@ -799,7 +799,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 6739817805461699885, guid: 7b0df7226129d8f46a1833fdbcd9f956, type: 3}
       propertyPath: _portType
-      value: 3
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8174040968528691976, guid: 7b0df7226129d8f46a1833fdbcd9f956, type: 3}
       propertyPath: m_Name
