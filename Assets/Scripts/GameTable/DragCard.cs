@@ -7,6 +7,7 @@ namespace GameTable
     {
         private GridManager _gridManager;
         private RectTransform _rectTransform;
+        private Canvas _canvas;
 
         private Vector2 _oldPosition = Vector2.zero;
         private Vector2 _originalPosition, _dragOffset;
@@ -19,6 +20,7 @@ namespace GameTable
         {
             _rectTransform = GetComponent<RectTransform>();
             _gridManager = FindObjectOfType<GridManager>();
+            _canvas = GetComponentInParent<Canvas>();
             _oldPosition = _rectTransform.anchoredPosition;
         }
 
@@ -32,8 +34,13 @@ namespace GameTable
         {
             if (_canDrag)
             {
-                _originalPosition = _rectTransform.anchoredPosition;
-                _dragOffset = eventData.position - new Vector2(_originalPosition.x, _originalPosition.y);
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    _rectTransform.parent as RectTransform,
+                    eventData.position,
+                    _canvas.worldCamera,
+                    out _originalPosition
+                );
+                _dragOffset = _originalPosition - _rectTransform.anchoredPosition;
                 _isDragging = true;
                 _canDrag = false;
             }
@@ -43,8 +50,15 @@ namespace GameTable
         {
             if (_isDragging)
             {
-                Vector2 currentPosition = eventData.position - _dragOffset;
-                _rectTransform.anchoredPosition = currentPosition;
+                if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    _rectTransform.parent as RectTransform,
+                    eventData.position,
+                    _canvas.worldCamera,
+                    out Vector2 currentPosition
+                ))
+                {
+                    _rectTransform.anchoredPosition = currentPosition - _dragOffset;
+                }
                 _rectTransform.SetAsLastSibling();
             }
         }
@@ -57,7 +71,7 @@ namespace GameTable
                 _rectTransform.anchoredPosition,
                 CardSize
             );
-            
+
             // TODO: Flight animation
             _rectTransform.anchoredPosition = newPosition ?? _oldPosition;
         }
