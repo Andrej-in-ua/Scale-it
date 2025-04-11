@@ -6,7 +6,7 @@ namespace GameTable
     public class GridManager : MonoBehaviour
     {
         [SerializeField] private float _maxSearchRange = 10;
-        [SerializeField] private float _gridSize = 110f;
+        [SerializeField] private float _gridSize;
 
         private int _padding = 1;
 
@@ -15,11 +15,13 @@ namespace GameTable
 
         public Vector2? PlaceOnGrid(int objectID, Vector2 position, Vector2Int objectSize)
         {
+
             var gridPos = CordToGrid(position);
 
             if (IsOccupied(objectID, gridPos, objectSize, _padding))
             {
                 var newGridPos = FindNearestAvailablePosition(objectID, gridPos, objectSize, _padding);
+
                 if (!newGridPos.HasValue)
                 {
                     return null;
@@ -30,13 +32,16 @@ namespace GameTable
 
             RemoveFromGrid(objectID);
             PlaceObjectOnGrid(objectID, gridPos, objectSize);
+
             return GridToCord(gridPos);
         }
 
         private void RemoveFromGrid(int objectID)
         {
             if (!_objectInGrid.ContainsKey(objectID))
+            {
                 return;
+            }
 
             foreach (var cell in _objectInGrid[objectID])
             {
@@ -92,13 +97,16 @@ namespace GameTable
             return null;
         }
 
-        private bool IsOccupied(int objectID, Vector2Int gridPos, Vector2Int size, int padding)
+        public bool IsOccupied(int objectID, Vector2Int gridPos, Vector2Int size, int padding)
         {
-            for (int i = gridPos.x - padding; i <= gridPos.x + size.x + padding; i++)
+            Vector2Int cell = Vector2Int.zero;
+
+            for (int i = gridPos.x - padding; i < gridPos.x + size.x + padding; i++)
             {
-                for (int j = gridPos.y - padding; j <= gridPos.y + size.y + padding; j++)
+                for (int j = gridPos.y - padding; j < gridPos.y + size.y + padding; j++)
                 {
-                    Vector2Int cell = new Vector2Int(i, j);
+                    cell = new Vector2Int(i, j);
+
                     if (_grid.ContainsKey(cell) && _grid[cell] != objectID)
                     {
                         return true;
@@ -112,7 +120,9 @@ namespace GameTable
         private void PlaceObjectOnGrid(int objectID, Vector2Int gridPos, Vector2 objectSize)
         {
             if (!_objectInGrid.ContainsKey(objectID))
+            {
                 _objectInGrid[objectID] = new List<Vector2Int>();
+            }
 
             for (int i = gridPos.x; i < gridPos.x + objectSize.x; i++)
             {
@@ -127,12 +137,17 @@ namespace GameTable
 
         private Vector2Int CordToGrid(Vector2 position)
         {
-            return new Vector2Int(Mathf.RoundToInt(position.x / _gridSize), Mathf.RoundToInt(position.y / _gridSize));
+            return new Vector2Int(Mathf.FloorToInt(position.x / _gridSize), Mathf.FloorToInt(position.y / _gridSize));
         }
 
         private Vector2 GridToCord(Vector2Int gridPos)
         {
-            return new Vector2(gridPos.x * _gridSize, gridPos.y * _gridSize);
+            return new Vector2((gridPos.x * _gridSize) + (_gridSize / 2), (gridPos.y * _gridSize) + (_gridSize / 2));
+        }
+
+        public float GetGridSize()
+        {
+            return _gridSize;
         }
     }
 }
