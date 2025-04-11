@@ -17,13 +17,17 @@ public class LineConnector : MonoBehaviour, IPointerUpHandler
     private GameObject _lineParentObject;
     private LineRenderer _lineRenderer, _lineForPathCreation;
     private LinePathCreation _linePathCreation;
+    private Camera _camera;
+
+    private LineConnector _connectedWith;
 
     private Vector3 _lastStartPos;
     private Vector3 _lastEndPos;
 
-    private List<Vector3> _currentPath = new();
+    private List<Vector3> _foundPath = new();
 
-    private bool _isDrawing = false, _isCalculatingPath = false, _canCalculatePathAsynchronously = true;
+    private bool _isDrawing = false;
+    private bool _isCalculatingPath = false;
 
     private void Start()
     {
@@ -32,65 +36,72 @@ public class LineConnector : MonoBehaviour, IPointerUpHandler
 
         _linePathCreation = FindAnyObjectByType<LinePathCreation>();
         _lineParentObject = GameObject.FindGameObjectWithTag("ParentForCreatedLines").gameObject;
+
+        _camera = Camera.main;
     }
 
-    private async void Update()
+    private void Update()
     {
-        if (!_isDrawing || _isCalculatingPath) return;
+        if (!_isDrawing) return;
 
-        Vector3 worldMousePos = GetWorldMousePosition();
+        FindPathTask();
+        DrawPreviewLine();
+    }
+
+    private async void FindPathTask()
+    {
+        if (_isCalculatingPath) return;
+
         Vector3 start = transform.position;
-        Vector3 end = worldMousePos;
+        Vector3 end = GetWorldMousePosition();
 
-        if (HasMovedEnough(start, end))
+        // Prevent recalculation when pointer not moved 
+        if (
+            Vector3.Distance(_lastStartPos, start) < 0.5f &&
+            Vector3.Distance(_lastEndPos, end) < 0.5f
+        ) return;
+
+        _lastStartPos = start;
+        _lastEndPos = end;
+
+        _isCalculatingPath = true;
+
+        try
         {
-            _lastStartPos = start;
-            _lastEndPos = end;
-            _isCalculatingPath = true;
-
-            _currentPath = _canCalculatePathAsynchronously
-                ? await Task.Run(() => _linePathCreation.FindPath(start, end))
-                : _linePathCreation.FindPath(start, end);
-
+            _foundPath = await Task.Run(() => _linePathCreation.FindPath(start, end));
+        }
+        finally
+        {
             _isCalculatingPath = false;
-            _canCalculatePathAsynchronously = true;
         }
+    }
 
-        if (_currentPath.Count > 0)
-        {
-            DrawPreviewLine(_currentPath);
-        }
+    private void DrawPreviewLine()
+    {
+        if (_foundPath.Count <= 0) return;
+
+        _lineForPathCreation.positionCount = _foundPath.Count;
+        _lineForPathCreation.SetPositions(_foundPath.ToArray());
+
+        _foundPath = new List<Vector3>();
     }
 
     private Vector3 GetWorldMousePosition()
     {
         Vector3 mousePos = Input.mousePosition;
         mousePos.z = 0;
-        Vector3 worldPos = Camera.main.ScreenToWorldPoint(mousePos);
+
+        Vector3 worldPos = _camera.ScreenToWorldPoint(mousePos);
         worldPos.z = 0;
+
         return worldPos;
     }
 
-    private bool HasMovedEnough(Vector3 start, Vector3 end)
-    {
-        return Vector3.Distance(_lastStartPos, start) > 0.5f ||
-               Vector3.Distance(_lastEndPos, end) > 0.5f;
-    }
-
-    private void DrawPreviewLine(List<Vector3> path)
-    {
-        _lineForPathCreation.positionCount = path.Count;
-        _lineForPathCreation.SetPositions(path.ToArray());
-    }
-
-    public void CanDrowLine()
+    public void CanDrawLine()
     {
         _isDrawing = true;
 
-        if (_lineRenderer != null)
-        {
-            Destroy(_lineRenderer.gameObject);
-        }
+        DisconnectBoth();
 
         _lineForPathCreation.gameObject.SetActive(true);
     }
@@ -98,26 +109,57 @@ public class LineConnector : MonoBehaviour, IPointerUpHandler
     public void OnPointerUp(PointerEventData eventData)
     {
         _isDrawing = false;
+        _lineForPathCreation.gameObject.SetActive(false);
+
         LineConnector targetButton = GetButtonUnderCursor(eventData);
 
-        if (targetButton != null && targetButton != this)
+        if (targetButton != null && targetButton != this && IsValidConnection(targetButton))
         {
-            CreateFinalLine();
-            Connection(targetButton, _lineRenderer);
-            _canCalculatePathAsynchronously = false;
+            CreateFinalLine(targetButton);
         }
-
-        _lineForPathCreation.gameObject.SetActive(false);
     }
 
-    private void CreateFinalLine()
+    private async void CreateFinalLine(LineConnector targetLineConnector)
     {
-        _lineRenderer = Instantiate(_linePrefab, _lineParentObject.transform, true);
-        _lineRenderer.positionCount = _lineForPathCreation.positionCount;
+        Vector3 start = transform.position;
+        Vector3 end = targetLineConnector.transform.position;
 
-        Vector3[] pathCopy = new Vector3[_lineForPathCreation.positionCount];
-        _lineForPathCreation.GetPositions(pathCopy);
-        _lineRenderer.SetPositions(pathCopy);
+        var path = await Task.Run(() => _linePathCreation.FindPath(start, end));
+
+        if (path.Count == 0) return;
+
+        Connect(targetLineConnector);
+        targetLineConnector.Connect(this);
+
+        _lineRenderer = Instantiate(_linePrefab, _lineParentObject.transform, true);
+        _lineRenderer.positionCount = path.Count;
+        _lineRenderer.SetPositions(path.ToArray());
+    }
+
+    public void Connect(LineConnector connector)
+    {
+        DisconnectBoth();
+        _connectedWith = connector;
+    }
+
+    private void DisconnectBoth()
+    {
+        if (_connectedWith != null)
+        {
+            _connectedWith.Disconnect();
+        }
+
+        Disconnect();
+    }
+
+    public void Disconnect()
+    {
+        _connectedWith = null;
+
+        if (_lineRenderer != null)
+        {
+            Destroy(_lineRenderer.gameObject);
+        }
     }
 
     private LineConnector GetButtonUnderCursor(PointerEventData eventData)
@@ -133,29 +175,19 @@ public class LineConnector : MonoBehaviour, IPointerUpHandler
                 return button;
             }
         }
+
         return null;
     }
 
-    public void SetLine(LineRenderer lineRenderer)
-    {
-        _lineRenderer = lineRenderer;
-    }
-
-    private void Connection(LineConnector connector, LineRenderer lineRenderer)
+    private bool IsValidConnection(LineConnector connector)
     {
         var validConnections = new Dictionary<PortType, PortType>
         {
-        { PortType.Input, PortType.Output },
-        { PortType.Output, PortType.Input }
+            { PortType.Input, PortType.Output },
+            { PortType.Output, PortType.Input }
         };
 
-        if (validConnections.TryGetValue(_portType, out var expectedType) && connector._portType == expectedType)
-        {
-            connector.SetLine(lineRenderer);
-        }
-        else
-        {
-            Destroy(_lineRenderer.gameObject);
-        }
+        return validConnections.TryGetValue(_portType, out var expectedType)
+               && connector._portType == expectedType;
     }
 }
