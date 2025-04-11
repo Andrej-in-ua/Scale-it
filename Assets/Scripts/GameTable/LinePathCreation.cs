@@ -20,7 +20,16 @@ public class LinePathCreation : MonoBehaviour
         var goalGrid = CordToGridForLine(endPoint);
         var goalNode = FindNearestFreeCell(goalGrid);
 
+// #if DEBUG
+//         Stopwatch stopwatch = Stopwatch.StartNew();
+// #endif
+
         var path = FindPathAStarMinTurns(startGrid, goalNode);
+
+// #if DEBUG
+//         stopwatch.Stop();
+//         UnityEngine.Debug.Log($"Find path time: {stopwatch.ElapsedMilliseconds} мс | {stopwatch.ElapsedTicks} ticks");
+// #endif
 
         if (goalNode != goalGrid) path.Add(GridToCordForLine(goalGrid));
 
@@ -46,7 +55,8 @@ public class LinePathCreation : MonoBehaviour
 
         var startState = (start, (Vector2Int?)null);
         gScore[startState] = 0;
-        fScore[startState] = Vector2Int.Distance(start, goal);
+        fScore[startState] = (goal - start).sqrMagnitude;
+
         openSet.Enqueue(startState, fScore[startState]);
         openSetHash.Add(startState);
 
@@ -71,14 +81,14 @@ public class LinePathCreation : MonoBehaviour
                 if (neighborPos != goal && IsCellOccupied(neighborPos)) continue;
 
                 bool isTurn = current.dir.HasValue && current.dir.Value != dir;
-                float turnPenalty = isTurn ? 0.5f : 0.0f;
-                float tentativeG = gScore[current] + 1 + turnPenalty;
+                float turnPenalty = isTurn ? 50f : 0.0f;
+                float tentativeG = gScore[current] + 10 + turnPenalty;
 
                 if (!gScore.ContainsKey(neighborState) || tentativeG < gScore[neighborState])
                 {
                     cameFrom[neighborState] = current;
                     gScore[neighborState] = tentativeG;
-                    fScore[neighborState] = tentativeG + Vector2Int.Distance(neighborPos, goal);
+                    fScore[neighborState] = tentativeG + (goal - neighborPos).sqrMagnitude;
 
                     if (openSetHash.Add(neighborState))
                         openSet.Enqueue(neighborState, fScore[neighborState]);
