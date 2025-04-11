@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using GameTable;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -16,7 +17,7 @@ public class LineConnector : MonoBehaviour, IPointerUpHandler
 
     private GameObject _lineParentObject;
     private LineRenderer _lineRenderer, _lineForPathCreation;
-    private LinePathCreation _linePathCreation;
+    private LinePathFinder _linePathFinder;
     private Camera _camera;
 
     private LineConnector _connectedWith;
@@ -34,7 +35,7 @@ public class LineConnector : MonoBehaviour, IPointerUpHandler
         _lineForPathCreation = GameObject.FindGameObjectWithTag("LineForPathCreation").GetComponent<LineRenderer>();
         _lineForPathCreation.useWorldSpace = true;
 
-        _linePathCreation = FindAnyObjectByType<LinePathCreation>();
+        _linePathFinder = FindAnyObjectByType<LinePathFinder>();
         _lineParentObject = GameObject.FindGameObjectWithTag("ParentForCreatedLines").gameObject;
 
         _camera = Camera.main;
@@ -68,7 +69,7 @@ public class LineConnector : MonoBehaviour, IPointerUpHandler
 
         try
         {
-            _foundPath = await Task.Run(() => _linePathCreation.FindPath(start, end));
+            _foundPath = await Task.Run(() => _linePathFinder.FindPath(start, end));
         }
         finally
         {
@@ -124,7 +125,7 @@ public class LineConnector : MonoBehaviour, IPointerUpHandler
         Vector3 start = transform.position;
         Vector3 end = targetLineConnector.transform.position;
 
-        var path = await Task.Run(() => _linePathCreation.FindPath(start, end));
+        var path = await Task.Run(() => _linePathFinder.FindPath(start, end));
 
         if (path.Count == 0) return;
 
