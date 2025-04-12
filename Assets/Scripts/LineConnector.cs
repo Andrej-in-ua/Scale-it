@@ -79,10 +79,12 @@ public class LineConnector : MonoBehaviour, IPointerUpHandler
 
     private void DrawPreviewLine()
     {
-        if (!_isDrawing || _foundPath.Count <= 0) return;
+        if (_foundPath.Count <= 0) return;
 
         _lineForPathCreation.positionCount = _foundPath.Count;
         _lineForPathCreation.SetPositions(_foundPath.ToArray());
+
+        _foundPath = new List<Vector3>();
     }
 
     private Vector3 GetWorldMousePosition()
@@ -117,10 +119,10 @@ public class LineConnector : MonoBehaviour, IPointerUpHandler
         {
             CreateFinalLine(targetButton);
         }
-
-        _lineForPathCreation.positionCount = 0;
-        _foundPath.Clear();
-        _lineForPathCreation.gameObject.SetActive(false);
+        else
+        {
+            _lineForPathCreation.gameObject.SetActive(false);
+        }
     }
 
     private async void CreateFinalLine(LineConnector targetLineConnector)
@@ -138,6 +140,8 @@ public class LineConnector : MonoBehaviour, IPointerUpHandler
         _lineRenderer = Instantiate(_linePrefab, _lineParentObject.transform, true);
         _lineRenderer.positionCount = path.Count;
         _lineRenderer.SetPositions(path.ToArray());
+
+        _lineForPathCreation.gameObject.SetActive(false);
     }
 
     public void Connect(LineConnector connector)

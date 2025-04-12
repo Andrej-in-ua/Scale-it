@@ -4,12 +4,16 @@ public class CameraMover : MonoBehaviour
 {
     [Header("Movement")]
     [SerializeField] private float _moveSpeed;
+    [SerializeField] private float _inertia;
+
+    private Vector2 _currentVelocity;
     private Vector2 _moveInput;
 
     [Header("Zoom")]
     [SerializeField] private float _zoomSpeed;
     [SerializeField] private float _minZoom;
     [SerializeField] private float _maxZoom;
+
     private float _targetZoom;
 
     private Camera _mainCam;
@@ -39,8 +43,11 @@ public class CameraMover : MonoBehaviour
 
     private void Update()
     {
-        Vector3 move = new Vector3(_moveInput.x, _moveInput.y, 0);
-        transform.Translate(move * _moveSpeed * Time.deltaTime, Space.World);
+        _currentVelocity = Vector2.Lerp(_currentVelocity, _moveInput, Time.deltaTime * _inertia);
+
+        float delta = _moveSpeed * Time.deltaTime;
+        Vector3 move = new Vector3(_currentVelocity.x, _currentVelocity.y, 0) * delta;
+        transform.Translate(move, Space.World);
 
         if (_mainCam.orthographic)
         {
