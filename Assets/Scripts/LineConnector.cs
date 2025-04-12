@@ -105,18 +105,23 @@ public class LineConnector : MonoBehaviour, IPointerUpHandler
         DisconnectBoth();
 
         _lineForPathCreation.gameObject.SetActive(true);
+        _lineForPathCreation.positionCount = 0;
+        _foundPath.Clear();
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
         _isDrawing = false;
-        _lineForPathCreation.gameObject.SetActive(false);
 
         LineConnector targetButton = GetButtonUnderCursor(eventData);
 
         if (targetButton != null && targetButton != this && IsValidConnection(targetButton))
         {
             CreateFinalLine(targetButton);
+        }
+        else
+        {
+            _lineForPathCreation.gameObject.SetActive(false);
         }
     }
 
@@ -135,6 +140,8 @@ public class LineConnector : MonoBehaviour, IPointerUpHandler
         _lineRenderer = Instantiate(_linePrefab, _lineParentObject.transform, true);
         _lineRenderer.positionCount = path.Count;
         _lineRenderer.SetPositions(path.ToArray());
+
+        _lineForPathCreation.gameObject.SetActive(false);
     }
 
     public void Connect(LineConnector connector)
