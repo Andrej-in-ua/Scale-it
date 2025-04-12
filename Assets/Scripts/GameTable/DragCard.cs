@@ -24,6 +24,11 @@ namespace GameTable
             _oldPosition = _rectTransform.anchoredPosition;
         }
 
+        private void Start()
+        {
+            PlaceCard();
+        }
+
         public void CardCanDrag()
         {
             _canDrag = true;
@@ -66,13 +71,18 @@ namespace GameTable
         public void OnEndDrag(PointerEventData eventData)
         {
             _isDragging = false;
+            
+            PlaceCard();
+        }
+
+        private void PlaceCard()
+        {
             Vector2? newPosition = _gridManager.PlaceOnGrid(
                 gameObject.GetInstanceID(),
                 _rectTransform.anchoredPosition,
                 CardSize
             );
 
-            // TODO: Flight animation
             _rectTransform.anchoredPosition = newPosition ?? _oldPosition;
         }
     }
