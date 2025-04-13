@@ -1010,7 +1010,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _parentCanvasForCard: {fileID: 1586127413}
-  _positionForSpawnCard: {fileID: 1093754653}
   _IDCardDropdown: {fileID: 1157762105}
   _cards:
   - {fileID: 557930712217247819, guid: 0b2e4073c3d19074aaab5fa8a7d99ba3, type: 3}
@@ -1297,10 +1296,10 @@ MonoBehaviour:
         - m_Target: {fileID: 696249199}
           m_TargetAssemblyTypeName: GameTable.CardSpawner, Assembly-CSharp
           m_MethodName: Spawn
-          m_Mode: 1
+          m_Mode: 2
           m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_ObjectArgument: {fileID: 1093754653}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Transform, UnityEngine
             m_IntArgument: 0
             m_FloatArgument: 0
             m_StringArgument: 

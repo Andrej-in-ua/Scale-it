@@ -6,15 +6,14 @@ namespace GameTable
     public class CardSpawner : MonoBehaviour
     {
         [SerializeField] private GameObject _parentCanvasForCard;
-        [SerializeField] private Transform _positionForSpawnCard;
         [SerializeField] private TMP_Dropdown _IDCardDropdown;
         [SerializeField] private GameObject[] _cards;
 
         private DragCard _lastSpawnedCard;
 
-        public void Spawn()
+        public void Spawn(Transform positionForSpawnCard)
         {
-            Vector3 worldPos = _positionForSpawnCard.position;
+            Vector3 worldPos = positionForSpawnCard.position;
             Vector2 localPos;
 
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
