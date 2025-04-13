@@ -104,8 +104,6 @@ public class LineConnector : MonoBehaviour, IPointerUpHandler
 
         DisconnectBoth();
 
-        _lineForPathCreation.gameObject.SetActive(true);
-        _lineForPathCreation.positionCount = 0;
         _foundPath.Clear();
     }
 
@@ -121,7 +119,7 @@ public class LineConnector : MonoBehaviour, IPointerUpHandler
         }
         else
         {
-            _lineForPathCreation.gameObject.SetActive(false);
+            _lineForPathCreation.positionCount = 0;
         }
     }
 
@@ -141,7 +139,7 @@ public class LineConnector : MonoBehaviour, IPointerUpHandler
         _lineRenderer.positionCount = path.Count;
         _lineRenderer.SetPositions(path.ToArray());
 
-        _lineForPathCreation.gameObject.SetActive(false);
+        _lineForPathCreation.positionCount = 0;
     }
 
     public void Connect(LineConnector connector)
