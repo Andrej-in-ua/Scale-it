@@ -1,77 +1,63 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 namespace GameTable
 {
-    public class DragCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+    public class DragCard : MonoBehaviour
     {
         private GridManager _gridManager;
         private RectTransform _rectTransform;
         private Canvas _canvas;
 
         private Vector2 _oldPosition = Vector2.zero;
-        private Vector2 _originalPosition, _dragOffset;
+        private Vector2 _dragOffset;
 
         private static readonly Vector2Int CardSize = new Vector2Int(5, 7);
 
-        private bool _isDragging = false, _canDrag = false;
+        private bool _followCursor = false, _offsetInitialized = false;
 
-        private void Awake()
+        private void Start()
         {
             _rectTransform = GetComponent<RectTransform>();
             _gridManager = FindObjectOfType<GridManager>();
             _canvas = GetComponentInParent<Canvas>();
             _oldPosition = _rectTransform.anchoredPosition;
-        }
 
-        private void Start()
-        {
             PlaceCard();
         }
 
-        public void CardCanDrag()
+        private void Update()
         {
-            _canDrag = true;
-            _oldPosition = _rectTransform.anchoredPosition;
-        }
-
-        public void OnBeginDrag(PointerEventData eventData)
-        {
-            if (_canDrag)
-            {
-                RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                    _rectTransform.parent as RectTransform,
-                    eventData.position,
-                    _canvas.worldCamera,
-                    out _originalPosition
-                );
-                _dragOffset = _originalPosition - _rectTransform.anchoredPosition;
-                _isDragging = true;
-                _canDrag = false;
-            }
-        }
-
-        public void OnDrag(PointerEventData eventData)
-        {
-            if (_isDragging)
+            if (_followCursor)
             {
                 if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
                     _rectTransform.parent as RectTransform,
-                    eventData.position,
+                    Input.mousePosition,
                     _canvas.worldCamera,
-                    out Vector2 currentPosition
-                ))
+                    out Vector2 localMousePos))
                 {
-                    _rectTransform.anchoredPosition = currentPosition - _dragOffset;
+                    if (!_offsetInitialized)
+                    {
+                        _dragOffset = localMousePos - _rectTransform.anchoredPosition;
+                        _offsetInitialized = true;
+                    }
+
+                    _rectTransform.anchoredPosition = localMousePos - _dragOffset;
+                    _rectTransform.SetAsLastSibling();
                 }
-                _rectTransform.SetAsLastSibling();
             }
         }
 
-        public void OnEndDrag(PointerEventData eventData)
+
+        public void FollowCursorWithoutClick()
         {
-            _isDragging = false;
-            
+            _dragOffset = Vector2.zero;
+            _followCursor = true;
+            _offsetInitialized = false;
+        }
+
+        public void StopFollowingCursor()
+        {
+            _followCursor = false;
             PlaceCard();
         }
 
