@@ -36,7 +36,7 @@ namespace GameTable
             return GridToCord(gridPos);
         }
 
-        private void RemoveFromGrid(int objectID)
+        public void RemoveFromGrid(int objectID)
         {
             if (!_objectInGrid.ContainsKey(objectID))
             {

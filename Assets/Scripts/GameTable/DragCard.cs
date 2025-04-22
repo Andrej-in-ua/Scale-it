@@ -4,7 +4,10 @@ namespace GameTable
 {
     public class DragCard : MonoBehaviour
     {
+        [SerializeField] private GameObject _cardsCountWindow;
+
         [SerializeField] private float _moveSpeed;
+        [SerializeField] private int _index;
 
         private GameObject _bottomPanel;
         private Inventory _inventory;
@@ -17,10 +20,8 @@ namespace GameTable
 
         private static readonly Vector2Int CardSize = new Vector2Int(5, 7);
 
-        private bool _isFollowingCursor = false;
-        private bool _isOffsetInitialized = false;
-        private bool _isMovedToInventory = false;
-        private bool _isMovingDirectlyToCursor = false;
+        private bool _isFollowingCursor = false, _isMovingDirectlyToCursor = false,
+            _isMovedToInventory = false, _isOffsetInitialized = false;
 
         private void Start()
         {
@@ -31,8 +32,12 @@ namespace GameTable
 
             _bottomPanel = GameObject.FindGameObjectWithTag("BottomPanel");
 
-            PlaceCard();
             _originalPosition = _rectTransform.anchoredPosition;
+
+            if (!_inventory.IsCursorOnInventory())
+            {
+                PlaceCard();
+            }
         }
 
         private void Update()
@@ -41,6 +46,11 @@ namespace GameTable
             {
                 HandleCursorMovement();
             }
+        }
+
+        public int GetCardIndex()
+        {
+            return _index;
         }
 
         private void HandleCursorMovement()
@@ -53,7 +63,7 @@ namespace GameTable
             }
             else if (!cursorOnInventory && _isMovedToInventory)
             {
-                MoveToCanvas();
+                MoveToTable();
             }
 
             UpdateCardPosition();
@@ -67,7 +77,7 @@ namespace GameTable
             _isMovingDirectlyToCursor = true;
         }
 
-        private void MoveToCanvas()
+        private void MoveToTable()
         {
             _inventory.MoveCard(_rectTransform, 1f, _canvas.gameObject);
             _isMovedToInventory = false;
@@ -105,6 +115,12 @@ namespace GameTable
 
         public void FollowCursorWithoutClick()
         {
+            if (_canvas != null)
+            {
+                _inventory.RemoveCard(_rectTransform, _canvas.transform);
+                _gridManager.RemoveFromGrid(gameObject.GetInstanceID());
+            }
+
             _dragOffset = Vector2.zero;
             _isFollowingCursor = true;
             _isOffsetInitialized = false;
@@ -115,15 +131,20 @@ namespace GameTable
             _isFollowingCursor = false;
             _isMovingDirectlyToCursor = false;
 
+            _inventory.GetLayout().enabled = true;
+
             if (_inventory.IsCursorOnInventory())
             {
-                _inventory.AddCard(_rectTransform);
+                if (_inventory.DoesInventoryHaveFreePlace(gameObject))
+                {
+                    _inventory.AddCard(_rectTransform);
+                    return;
+                }
+
+                MoveToTable();
             }
-            else
-            {
-                PlaceCard();
-                _inventory.RemoveCard(_rectTransform, _canvas.transform);
-            }
+
+            PlaceCard();
         }
 
         private void PlaceCard()
@@ -135,6 +156,16 @@ namespace GameTable
             );
 
             _rectTransform.anchoredPosition = newPosition ?? _originalPosition;
+        }
+
+        public GameObject GetCardsCountWindow()
+        {
+            return _cardsCountWindow;
+        }
+
+        public bool IsCardInInventory()
+        {
+            return _isMovedToInventory;
         }
     }
 }

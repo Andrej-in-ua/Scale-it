@@ -19,6 +19,7 @@ namespace GameTable
         private GameObject _lineParentObject;
         private LineRenderer _lineRenderer, _lineForPathCreation;
         private LinePathFinder _linePathFinder;
+        private DragCard _card;
         private Camera _camera;
 
         private LineConnector _connectedWith;
@@ -33,6 +34,8 @@ namespace GameTable
 
         private void Start()
         {
+            _card = transform.parent.GetComponent<DragCard>();
+
             _lineForPathCreation = GameObject.FindGameObjectWithTag("LineForPathCreation").GetComponent<LineRenderer>();
             _lineForPathCreation.useWorldSpace = true;
 
@@ -101,26 +104,34 @@ namespace GameTable
 
         public void CanDrawLine()
         {
-            _isDrawing = true;
+            if (!_card.IsCardInInventory())
+            {
+                _isDrawing = true;
 
-            DisconnectBoth();
+                DisconnectBoth();
 
-            _foundPath.Clear();
+                _foundPath.Clear();
+            }
         }
 
         public void OnPointerUp(PointerEventData eventData)
         {
-            _isDrawing = false;
-
-            LineConnector targetButton = GetButtonUnderCursor(eventData);
-
-            if (targetButton != null && targetButton != this && IsValidConnection(targetButton))
+            if (!_card.IsCardInInventory())
             {
-                CreateFinalLine(targetButton);
-            }
-            else
-            {
-                _lineForPathCreation.positionCount = 0;
+                _isDrawing = false;
+
+                LineConnector targetButton = GetButtonUnderCursor(eventData);
+
+                DragCard parentOfTarget = targetButton.transform.parent.GetComponent<DragCard>();
+
+                if (targetButton != null && targetButton != this && IsValidConnection(targetButton) && !parentOfTarget.IsCardInInventory())
+                {
+                    CreateFinalLine(targetButton);
+                }
+                else
+                {
+                    _lineForPathCreation.positionCount = 0;
+                }
             }
         }
 
