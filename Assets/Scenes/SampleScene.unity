@@ -1011,10 +1011,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _parentCanvasForCard: {fileID: 1586127413}
   _IDCardDropdown: {fileID: 1157762105}
-  _cards:
-  - {fileID: 557930712217247819, guid: 0b2e4073c3d19074aaab5fa8a7d99ba3, type: 3}
-  - {fileID: 557930712217247819, guid: 0b2e4073c3d19074aaab5fa8a7d99ba3, type: 3}
-  - {fileID: 557930712217247819, guid: 0b2e4073c3d19074aaab5fa8a7d99ba3, type: 3}
+  _cardPrefab: {fileID: 557930712217247819, guid: 0b2e4073c3d19074aaab5fa8a7d99ba3, type: 3}
 --- !u!1001 &829164206
 PrefabInstance:
   m_ObjectHideFlags: 0

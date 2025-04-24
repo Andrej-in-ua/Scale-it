@@ -7,7 +7,7 @@ namespace GameTable
     {
         [SerializeField] private GameObject _parentCanvasForCard;
         [SerializeField] private TMP_Dropdown _IDCardDropdown;
-        [SerializeField] private GameObject[] _cards;
+        [SerializeField] private GameObject _cardPrefab;
 
         private DragCard _lastSpawnedCard;
 
@@ -23,7 +23,7 @@ namespace GameTable
                 out localPos
             );
 
-            GameObject card = Instantiate(_cards[_IDCardDropdown.value].gameObject);
+            GameObject card = Instantiate(_cardPrefab);
 
             Debug.Log(_IDCardDropdown.value);
 
