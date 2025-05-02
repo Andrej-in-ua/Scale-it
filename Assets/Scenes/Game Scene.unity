@@ -607,7 +607,7 @@ Transform:
   m_GameObject: {fileID: 1291085714}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -36.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -625,9 +625,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd6e2b6b2fb57943abadfa4e304919f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tilemap: {fileID: 1291085718}
-  cardTile: {fileID: 11400000, guid: 3ebb8cd6e9c09bb47a8b535c7c11648b, type: 2}
   cardPrefab: {fileID: 1660511146997924024, guid: 7961f19e443ecfe4ca74ae084f062572, type: 3}
+  grid: {fileID: 195995939}
 --- !u!483693784 &1291085717
 TilemapRenderer:
   m_ObjectHideFlags: 0
@@ -966,7 +965,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1586127414
 MonoBehaviour:
   m_ObjectHideFlags: 0
