@@ -46,3 +46,12 @@ TagManager:
   - name: Card
     uniqueID: 1259557417
     locked: 0
+  - name: Background
+    uniqueID: 2387521127
+    locked: 0
+  - name: Placement Grid
+    uniqueID: 1884716079
+    locked: 0
+  - name: Colision
+    uniqueID: 2961950315
+    locked: 0
