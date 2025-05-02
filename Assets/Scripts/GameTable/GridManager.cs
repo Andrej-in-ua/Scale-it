@@ -15,9 +15,9 @@ namespace GameTable
 
         public Vector2? PlaceOnGrid(int objectID, Vector2 position, Vector2Int objectSize)
         {
-
             var gridPos = CordToGrid(position);
 
+           // Debug.Log(gridPos + " / " + objectSize);
             if (IsOccupied(objectID, gridPos, objectSize, _padding))
             {
                 var newGridPos = FindNearestAvailablePosition(objectID, gridPos, objectSize, _padding);
@@ -36,7 +36,7 @@ namespace GameTable
             return GridToCord(gridPos);
         }
 
-        private void RemoveFromGrid(int objectID)
+        public void RemoveFromGrid(int objectID)
         {
             if (!_objectInGrid.ContainsKey(objectID))
             {

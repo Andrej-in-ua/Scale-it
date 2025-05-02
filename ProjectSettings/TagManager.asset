@@ -6,6 +6,7 @@ TagManager:
   tags:
   - LineForPathCreation
   - ParentForCreatedLines
+  - BottomPanel
   layers:
   - Default
   - TransparentFX
@@ -46,12 +47,9 @@ TagManager:
   - name: Card
     uniqueID: 1259557417
     locked: 0
-  - name: Background
-    uniqueID: 2387521127
+  - name: GameTable
+    uniqueID: 4189434665
     locked: 0
-  - name: Placement Grid
-    uniqueID: 1884716079
-    locked: 0
-  - name: Colision
-    uniqueID: 2961950315
+  - name: Inventory
+    uniqueID: 2387517835
     locked: 0
