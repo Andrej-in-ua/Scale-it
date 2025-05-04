@@ -1,7 +1,5 @@
-namespace DefaultNamespace
+public class Constants
 {
-    public class Constants
-    {
-        public const string CardPath = "Card";
-    }
+    public const string InventoryPath = "Inventory";
+    public const string CardPath = "Card";
 }

@@ -1,14 +1,20 @@
+using UI.Game;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Zenject;
 
 public class MainState : State
 {
-    private StateMachineBase _stateMachine;
+    private readonly StateMachineBase _stateMachine;
+    private readonly GameMediator _gameMediator;
 
-    public MainState(StateMachineBase stateMachine)
+    public MainState(
+        StateMachineBase stateMachine,
+        GameMediator gameMediator
+    )
     {
         _stateMachine = stateMachine;
+        _gameMediator = gameMediator;
     }
 
     public override void Enter()
@@ -16,6 +22,8 @@ public class MainState : State
         Debug.Log("enter main state");
         SceneManager.LoadScene(1);
         Subscribe();
+        
+        // _gameMediator.ConstructUI();
     }
     public void Subscribe()
     {
