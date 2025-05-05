@@ -22,7 +22,8 @@ namespace UI.Game
 
            for (int i = 0; i < 5; i++)
            {
-               var dragCard = _factory.CreateUICard(_inventory);
+               Transform inventoryPanel = _inventory.GetChild(0).transform;
+               var card = _factory.CreateUICard(inventoryPanel);
            }
         }
     }

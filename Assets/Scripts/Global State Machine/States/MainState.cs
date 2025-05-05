@@ -20,11 +20,22 @@ public class MainState : State
     public override void Enter()
     {
         Debug.Log("enter main state");
-        SceneManager.LoadScene(1);
         Subscribe();
-        
-        // _gameMediator.ConstructUI();
+
+        SceneManager.sceneLoaded += OnSceneLoaded;
+        SceneManager.LoadScene(1);
     }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.buildIndex == 1)
+        {
+            _gameMediator.ConstructUI();
+
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+        }
+    }
+
     public void Subscribe()
     {
         Application.quitting += Exit;

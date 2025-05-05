@@ -24,7 +24,7 @@ namespace UI.Game
         public Transform CreateInventory()
         {
             // TODO: Add inventory prefab
-            var inventoryPrefab = _assetProviderService.LoadAssetFromResources<GameObject>(Constants.InventoryPath);
+            var inventoryPrefab = _assetProviderService.LoadAssetFromResources<GameObject>(Constants.InventoryPath).gameObject;
             GameObject inventory = Object.Instantiate(inventoryPrefab);
 
             return inventory.GetComponent<Transform>();
