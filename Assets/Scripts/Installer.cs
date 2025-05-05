@@ -1,6 +1,6 @@
+using Services;
 using UI.Game;
 using Zenject;
-using UnityEngine;
 
 public class Installer : MonoInstaller
 {
@@ -8,6 +8,7 @@ public class Installer : MonoInstaller
     {
         BindGlobalStateMachine();
         BindMediator();
+        BindServices();
     }
 
     private void BindGlobalStateMachine()
@@ -20,5 +21,11 @@ public class Installer : MonoInstaller
     private void BindMediator()
     {
         Container.Bind<IGameMediator>().To<GameMediator>().AsSingle();
+        Container.Bind<IUICardFactory>().To<UICardFactory>().AsSingle();
+    }
+
+    private void BindServices()
+    {
+        Container.Bind<IAssetProviderService>().To<AssetProviderService>().AsSingle();
     }
 }

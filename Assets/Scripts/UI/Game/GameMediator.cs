@@ -29,5 +29,6 @@ namespace UI.Game
 
     public interface IGameMediator
     {
+        public void ConstructUI();
     }
 }

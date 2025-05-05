@@ -6,11 +6,11 @@ using Zenject;
 public class MainState : State
 {
     private readonly StateMachineBase _stateMachine;
-    private readonly GameMediator _gameMediator;
+    private readonly IGameMediator _gameMediator;
 
     public MainState(
         StateMachineBase stateMachine,
-        GameMediator gameMediator
+        IGameMediator gameMediator
     )
     {
         _stateMachine = stateMachine;
