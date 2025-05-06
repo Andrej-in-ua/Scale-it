@@ -6,6 +6,10 @@ namespace UI.Game
     public interface IUICardFactory
     {
         Transform CreateInventory();
-        CardView CreateUICard(Transform parent);
+        Transform CreateUICard(Transform parent);
+        
+        Transform CreateLinePort(Transform parent, string inputPath);
+
+        Transform CreateCardName(Transform parent);
     }
 }

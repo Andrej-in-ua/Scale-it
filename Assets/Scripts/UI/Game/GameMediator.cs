@@ -24,7 +24,31 @@ namespace UI.Game
            {
                Transform inventoryPanel = _inventory.GetChild(0).transform;
                var card = _factory.CreateUICard(inventoryPanel);
+               
+              ConstructLinePortsForCard(card.transform, 4,4,2);
+
+              _factory.CreateCardName(card.transform);
            }
+        }
+
+        private void ConstructLinePortsForCard(Transform card, int inputsCount, int outputsCount, int modifiersCount)
+        {
+            (int count, string path)[] portConfigs = 
+            {
+                (inputsCount, Constants.InputPath),
+                (outputsCount, Constants.OutputPath),
+                (modifiersCount, Constants.ModifierPath)
+            };
+
+            for (int i = 0; i < portConfigs.Length; i++)
+            {
+                Transform parent = card.GetChild(i);
+                
+                for (int j = 0; j < portConfigs[i].count; j++)
+                {
+                    _factory.CreateLinePort(parent, portConfigs[i].path);
+                }
+            }
         }
     }
 
