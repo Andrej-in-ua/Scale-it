@@ -5,6 +5,8 @@ using Zenject;
 
 public class MainState : State
 {
+    private const string SceneName = "Game Scene";
+
     private readonly StateMachineBase _stateMachine;
     private readonly IGameMediator _gameMediator;
 
@@ -22,13 +24,12 @@ public class MainState : State
         Debug.Log("enter main state");
         Subscribe();
 
-        SceneManager.sceneLoaded += OnSceneLoaded;
-        SceneManager.LoadScene(1);
+        SceneManager.LoadScene(SceneName);
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (scene.buildIndex == 1)
+        if (scene.name == SceneName)
         {
             _gameMediator.ConstructUI();
 
@@ -39,11 +40,13 @@ public class MainState : State
     public void Subscribe()
     {
         Application.quitting += Exit;
+        SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     public void Unsubscribe()
     {
         Application.quitting -= Exit;
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
     public override void Exit()
