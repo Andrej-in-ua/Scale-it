@@ -1,3 +1,4 @@
+using UI.Game.Inventory;
 using UnityEngine;
 
 namespace GameTable
@@ -10,7 +11,7 @@ namespace GameTable
         [SerializeField] private int _index;
 
         private GameObject _bottomPanel;
-        private Inventory _inventory;
+        private UIInventory _inventory;
         private GridManager _gridManager;
         private RectTransform _rectTransform;
         private Canvas _canvas;
@@ -27,7 +28,7 @@ namespace GameTable
         {
             _rectTransform = GetComponent<RectTransform>();
             _gridManager = FindObjectOfType<GridManager>();
-            _inventory = FindObjectOfType<Inventory>();
+            _inventory = FindObjectOfType<UIInventory>();
             _canvas = _gridManager.GetComponent<Canvas>();
 
             _bottomPanel = GameObject.FindGameObjectWithTag("BottomPanel");
