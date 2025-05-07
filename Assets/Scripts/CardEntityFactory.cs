@@ -4,6 +4,7 @@ using Unity.Entities;
 using Unity.Transforms;
 using Unity.Mathematics;
 
+// TODO: THIS IS EXAMPLE CODE, REMOVE IT LATER!
 public class CardEntityFactory : MonoBehaviour
 {
     public GameObject cardPrefab;
