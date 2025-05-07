@@ -1,4 +1,5 @@
 using Services;
+using UI.Game.CardPreviews;
 using UnityEngine;
 
 namespace UI.Game
@@ -12,39 +13,48 @@ namespace UI.Game
             _assetProviderService = assetProviderService;
         }
 
-        public Transform CreateUICard(Transform parent)
+        public UICardPreview CreateUICard(Transform parent, string name)
         {
             var cardPrefab = _assetProviderService.LoadAssetFromResources<GameObject>(Constants.CardPath);
-            GameObject card = Object.Instantiate(cardPrefab, parent);
+            UICardPreview card = Object.Instantiate(cardPrefab, parent).GetComponent<UICardPreview>();
+            
+            card.name = name;
+            card.Name.text = name;
 
-            return card.transform;
+           // ConstructLinePortsForCard(card.transform, 4, 4, 2);
+
+            return card;
         }
 
         // TODO: MB move it to self factory?
-        public Transform CreateInventory()
-        {
-            var inventoryPrefab = _assetProviderService.LoadAssetFromResources<GameObject>(Constants.InventoryPath).gameObject;
-            GameObject inventory = Object.Instantiate(inventoryPrefab);
-
-            return inventory.GetComponent<Transform>();
-        }
+      
 
         public Transform CreateLinePort(Transform parent, string inputPath)
         {
             GameObject linePortPrefab = _assetProviderService.LoadAssetFromResources<GameObject>(inputPath).gameObject;
             GameObject linePort = Object.Instantiate(linePortPrefab, parent);
-            
+
             return linePort.GetComponent<Transform>();
         }
 
-        public Transform CreateCardName(Transform parent)
+        private void ConstructLinePortsForCard(Transform card, int inputsCount, int outputsCount, int modifiersCount)
         {
-            GameObject cardNamePrefab = _assetProviderService.LoadAssetFromResources<GameObject>(Constants.CardNamePath).gameObject;
-            
-            GameObject cardName = Object.Instantiate(cardNamePrefab, parent);
-            cardName.transform.position = new Vector2(parent.position.x, parent.position.y + 80);
-            
-            return cardName.transform;
+            (int count, string path)[] portConfigs =
+            {
+                (inputsCount, Constants.InputPath),
+                (outputsCount, Constants.OutputPath),
+                (modifiersCount, Constants.ModifierPath)
+            };
+
+            for (int i = 0; i < portConfigs.Length; i++)
+            {
+                Transform parent = card.GetChild(i);
+
+                for (int j = 0; j < portConfigs[i].count; j++)
+                {
+                    CreateLinePort(parent, portConfigs[i].path);
+                }
+            }
         }
     }
 }

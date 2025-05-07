@@ -1,15 +1,13 @@
 using GameTable;
+using UI.Game.CardPreviews;
 using UnityEngine;
 
 namespace UI.Game
 {
     public interface IUICardFactory
     {
-        Transform CreateInventory();
-        Transform CreateUICard(Transform parent);
+        UICardPreview CreateUICard(Transform parent, string name);
         
         Transform CreateLinePort(Transform parent, string inputPath);
-
-        Transform CreateCardName(Transform parent);
     }
 }

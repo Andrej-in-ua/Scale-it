@@ -7,9 +7,4 @@ namespace Services
         public T LoadAssetFromResources<T>(string path) where T : UnityEngine.Object =>
             Resources.Load<T>(path);
     }
-
-    public interface IAssetProviderService
-    {
-        T LoadAssetFromResources<T>(string path) where T : UnityEngine.Object;
-    }
 }

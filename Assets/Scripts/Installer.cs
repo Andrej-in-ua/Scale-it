@@ -1,5 +1,6 @@
 using Services;
 using UI.Game;
+using UI.Game.Inventory;
 using Zenject;
 
 public class Installer : MonoInstaller
@@ -20,8 +21,9 @@ public class Installer : MonoInstaller
 
     private void BindMediator()
     {
-        Container.Bind<IGameMediator>().To<GameMediator>().AsSingle();
+        Container.Bind<IUIGameMediator>().To<UIGameMediator>().AsSingle();
         Container.Bind<IUICardFactory>().To<UICardFactory>().AsSingle();
+        Container.Bind<UIGameFactory>().AsSingle();
     }
 
     private void BindServices()

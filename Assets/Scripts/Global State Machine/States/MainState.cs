@@ -8,11 +8,11 @@ public class MainState : State
     private const string SceneName = "Game Scene";
 
     private readonly StateMachineBase _stateMachine;
-    private readonly IGameMediator _gameMediator;
+    private readonly IUIGameMediator _gameMediator;
 
     public MainState(
         StateMachineBase stateMachine,
-        IGameMediator gameMediator
+        IUIGameMediator gameMediator
     )
     {
         _stateMachine = stateMachine;
