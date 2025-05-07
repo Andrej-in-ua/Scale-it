@@ -20,7 +20,7 @@ namespace UI.Game
             return card.transform;
         }
 
-        // TODO: MB move it to salf factory?
+        // TODO: MB move it to self factory?
         public Transform CreateInventory()
         {
             var inventoryPrefab = _assetProviderService.LoadAssetFromResources<GameObject>(Constants.InventoryPath).gameObject;
