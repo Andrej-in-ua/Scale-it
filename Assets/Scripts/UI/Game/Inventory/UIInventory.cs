@@ -12,7 +12,9 @@ namespace UI.Game.Inventory
         [SerializeField] private float _cardScaleInInventory = 0.8f;
         [SerializeField] private int _maxSlots = 11;
         [SerializeField] private int _maxCardsPerStack = 5;
-
+        [SerializeField] private Canvas _canvas;
+        
+        
         private readonly List<List<GameObject>> _cards = new();
 
         public void AddCard(RectTransform card)
@@ -153,6 +155,11 @@ namespace UI.Game.Inventory
             }
 
             return false;
+        }
+
+        public void Construct()
+        {
+            _canvas.worldCamera = Camera.main;
         }
 
         public HorizontalLayoutGroup GetLayout()

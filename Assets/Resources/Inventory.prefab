@@ -221,3 +221,4 @@ MonoBehaviour:
   _cardScaleInInventory: 0.8
   _maxSlots: 11
   _maxCardsPerStack: 5
+  _canvas: {fileID: 514423487452501422}

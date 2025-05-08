@@ -5,4 +5,5 @@ public class Constants
     public const string InputPath = "Input";
     public const string OutputPath = "Output";
     public const string ModifierPath = "Modifier";
+    public const string InputServicePath = "InputService";
 }

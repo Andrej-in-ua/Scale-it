@@ -29,5 +29,6 @@ public class Installer : MonoInstaller
     private void BindServices()
     {
         Container.Bind<IAssetProviderService>().To<AssetProviderService>().AsSingle();
+        Container.Bind<InputService>().FromComponentInNewPrefabResource(Constants.InputServicePath).AsSingle();
     }
 }

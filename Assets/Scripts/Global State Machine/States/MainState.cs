@@ -1,3 +1,4 @@
+using Services;
 using UI.Game;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -9,14 +10,16 @@ public class MainState : State
 
     private readonly StateMachineBase _stateMachine;
     private readonly IUIGameMediator _gameMediator;
+    private readonly InputService _inputService;
 
     public MainState(
         StateMachineBase stateMachine,
-        IUIGameMediator gameMediator
+        IUIGameMediator gameMediator, InputService inputService
     )
     {
         _stateMachine = stateMachine;
         _gameMediator = gameMediator;
+        _inputService = inputService;
     }
 
     public override void Enter()
