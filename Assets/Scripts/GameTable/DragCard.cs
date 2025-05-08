@@ -1,3 +1,4 @@
+using System;
 using UI.Game.Inventory;
 using UnityEngine;
 
@@ -9,6 +10,8 @@ namespace GameTable
 
         [SerializeField] private float _moveSpeed;
         [SerializeField] private int _index;
+        
+        public event Action OnDrag;
 
         private GameObject _bottomPanel;
         private UIInventory _inventory;
@@ -167,6 +170,18 @@ namespace GameTable
         public bool IsCardInInventory()
         {
             return _isMovedToInventory;
+        }
+
+        public void OnBeginDrag()
+        {
+            Debug.Log("OnBeginDrag");
+            OnDrag?.Invoke();
+        }
+
+        public void Drag(Vector3 screenToWorldPoint)
+        {
+            Debug.Log("Dragging");
+            transform.position = screenToWorldPoint;
         }
     }
 }
