@@ -1,3 +1,4 @@
+using DeckManager;
 using Services;
 using UI.Game;
 using UnityEngine;
@@ -27,6 +28,7 @@ public class MainState : State
         Debug.Log("enter main state");
         Subscribe();
 
+        DeckLoader.LoadAsGlobal(Constants.DefaultDeckName);
         SceneManager.LoadScene(SceneName);
     }
 

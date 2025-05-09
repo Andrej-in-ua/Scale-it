@@ -6,4 +6,6 @@ public class Constants
     public const string OutputPath = "Output";
     public const string ModifierPath = "Modifier";
     public const string InputServicePath = "InputService";
+
+    public const string DefaultDeckName = "default";
 }
