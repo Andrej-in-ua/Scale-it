@@ -18,7 +18,7 @@ namespace DeckManager
                 throw new Exception("Could not load deck: " + deckName);
             }
 
-            Deck.SetAsGlobal(Load(deckName));
+            Deck.SetAsGlobal(loadedDeck);
         }
 
         public static Deck Load(string deckName)
