@@ -18,8 +18,11 @@ namespace UI.Game
             var inventoryPrefab = _assetProviderService.LoadAssetFromResources<GameObject>(Constants.InventoryPath)
                 .gameObject;
             GameObject inventory = Object.Instantiate(inventoryPrefab);
+            
+            var uiInventory = inventory.GetComponent<UIInventory>();
+            uiInventory.Construct();
 
-            return inventory.GetComponent<UIInventory>();
+            return uiInventory;
         }  
     }
 }

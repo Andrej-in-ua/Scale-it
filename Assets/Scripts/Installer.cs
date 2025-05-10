@@ -1,6 +1,6 @@
 using Services;
 using UI.Game;
-using UI.Game.Inventory;
+using View.CardEntity;
 using Zenject;
 
 public class Installer : MonoInstaller
@@ -9,6 +9,7 @@ public class Installer : MonoInstaller
     {
         BindGlobalStateMachine();
         BindMediator();
+        BindView();
         BindServices();
     }
 
@@ -26,8 +27,14 @@ public class Installer : MonoInstaller
         Container.Bind<UIGameFactory>().AsSingle();
     }
 
+    private void BindView()
+    {
+        // Container.Bind<CardEntityFactory>().FromComponentInNewPrefabResource(Constants.ViewFactoriesPath).AsSingle();
+    }
+
     private void BindServices()
     {
         Container.Bind<IAssetProviderService>().To<AssetProviderService>().AsSingle();
+        Container.Bind<InputService>().FromComponentInNewPrefabResource(Constants.InputServicePath).AsSingle();
     }
 }

@@ -5,39 +5,30 @@ using YamlDotNet.Serialization;
 
 namespace DeckManager
 {
-    public class DeckLoader : MonoBehaviour
+    public static class DeckLoader
     {
-        public static DeckLoader Instance { get; private set; }
-        public Deck Deck { get; private set; }
-
-        public string deckName = "default";
-
-        private void Awake()
+        public static void LoadAsGlobal(string deckName)
         {
-            if (Instance == null)
+            var loadedDeck = Load(deckName);
+
+            if (loadedDeck == null)
             {
-                Instance = this;
-                DontDestroyOnLoad(gameObject);
-            }
-            else
-            {
-                Destroy(gameObject);
+                // If the deck fails to load, we can't continue. This is a critical error.
+                // Call Load(string deckName) directly to handle the error.
+                throw new Exception("Could not load deck: " + deckName);
             }
 
-            if (!LoadDeck())
-            {
-                throw new Exception("Load deck failed");
-            }
+            Deck.SetAsGlobal(loadedDeck);
         }
 
-        private bool LoadDeck()
+        public static Deck Load(string deckName)
         {
-            var path = Path.Combine(Application.streamingAssetsPath, $"deck_{deckName}.yaml");
+            var path = Path.Combine(Application.streamingAssetsPath, $"card_decks/{deckName}/deck_{deckName}.yaml");
 
             if (!File.Exists(path))
             {
                 Debug.LogError($"Deck loading error: {path}");
-                return false;
+                return null;
             }
 
             var yamlText = File.ReadAllText(path);
@@ -48,10 +39,11 @@ namespace DeckManager
 #endif
                 .Build();
 
-            Deck = new Deck(deserializer.Deserialize<RawDeck>(yamlText));
-            Debug.Log($"Deck \"{deckName}\" loaded.");
+            var loadedDeck = new Deck(deserializer.Deserialize<RawDeck>(yamlText));
 
-            return true;
+            Debug.Log($"Deck \"{loadedDeck.meta.name} (v{loadedDeck.meta.version})\" loaded.");
+
+            return loadedDeck;
         }
     }
 }

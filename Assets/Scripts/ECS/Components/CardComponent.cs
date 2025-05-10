@@ -19,9 +19,8 @@ namespace ECS.Components
         [NativeDisableParallelForRestriction]
         public NativeHashMap<int, int> ResourcesLock;
 
-        public Card Card => DeckLoader.Instance.Deck.cards[CardID];
-        public TagDictionary Tags => DeckLoader.Instance.Deck.cards[CardID].tags;
-
-        public Recipe ActiveRecipe => DeckLoader.Instance.Deck.cards[CardID].recipes[RecipeID];
+        public Card Card => Deck.Instance.cards[CardID];
+        public TagDictionary Tags => Card.tags;
+        public Recipe ActiveRecipe => Card.recipes[RecipeID];
     }
 }
