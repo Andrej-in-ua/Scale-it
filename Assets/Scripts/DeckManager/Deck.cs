@@ -18,6 +18,13 @@ namespace DeckManager
         public DeckMeta meta;
         public Dictionary<int, Card> cards;
 
+        public static Deck Instance { get; private set; }
+        
+        public static void SetAsGlobal(Deck deck)
+        {
+            Instance = deck;
+        }
+
         public Deck(RawDeck raw)
         {
             meta = raw.meta;
