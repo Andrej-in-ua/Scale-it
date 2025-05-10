@@ -22,7 +22,7 @@ namespace View.CardEntity
             {
                 var pos = entityManager.GetComponentData<LocalTransform>(entity).Position;
                 transform.position = new Vector3(pos.x, pos.y, 0);
-                Debug.Log(transform.position);
+               // Debug.Log(transform.position);
             }
         }
     }
