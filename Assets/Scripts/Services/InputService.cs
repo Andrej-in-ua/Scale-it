@@ -5,64 +5,65 @@ namespace Services
 {
     public class InputService : MonoBehaviour
     {
-        private Camera _camera;
-        private DragCard _draggable;
-        private bool _dragging = false;
+        private IDraggable _draggable;
+
+        private (IDraggable, Vector3) HitToDragable()
+        {
+            Vector3 mousePosition = Input.mousePosition;
+            Ray ray = Camera.main.ScreenPointToRay(mousePosition);
+            RaycastHit2D[] hits = Physics2D.GetRayIntersectionAll(ray, Mathf.Infinity);
+
+            foreach (var hit in hits)
+            {
+                if (hit.collider == null)
+                    continue;
+
+                IDraggable draggable = hit.collider.GetComponent<IDraggable>();
+                if (draggable == null)
+                    continue;
+
+                return (draggable, mousePosition);
+            }
+
+            return default;
+        }
+
+        public void MouseDown()
+        {
+            if (_draggable == null)
+            {
+                var (hitTarget, mousePosition) = HitToDragable();
+
+                if (hitTarget != null)
+                {
+                    hitTarget.OnStartDrag();
+                    _draggable = hitTarget;
+                }
+            }
+        }
+
+        public void MouseDrag()
+        {
+            if (_draggable != null)
+            {
+                _draggable.OnDrag(Camera.main.ScreenToWorldPoint(Input.mousePosition));
+            }
+        }
+
+        public void MouseUp()
+        {
+            if (_draggable != null)
+            {
+                _draggable.OnStopDrag(Camera.main.ScreenToWorldPoint(Input.mousePosition));
+                _draggable = null;
+            }
+        }
 
         private void Update()
         {
-            if (!_dragging && Input.GetMouseButtonDown(0)) TryStartDrag();
-            if (_dragging) UpdateDrag();
-        }
-
-        void UpdateDrag()
-        {
-            Vector3 sp = Input.mousePosition;
-
-            if (_draggable != null)
-            {
-                _draggable.Drag(Camera.main.ScreenToWorldPoint(Input.mousePosition));
-            }
-
-           // Ray ray = Camera.main.ScreenPointToRay(sp);
-            
-            // bool overInventory = Physics2D.GetRayIntersection(ray, Mathf.Infinity);
-            // if (!overInventory && ghost == null)
-            // {
-            //     var hit = Physics2D.GetRayIntersection(ray, Mathf.Infinity, worldMask);
-            //     Vector3 dropPos = hit ? hit.point : Camera.main.ScreenToWorldPoint(sp);
-            //     dropPos.z = 0;
-            //     ghost = Instantiate(cardPrefab, dropPos, Quaternion.identity);
-            // }
-        }
-        
-        void TryStartDrag()
-        {
-            Vector3 sp = Input.mousePosition;
-            Ray ray    = Camera.main.ScreenPointToRay(sp);
-
-            RaycastHit2D hit = Physics2D.GetRayIntersection(ray, Mathf.Infinity);
-            if (hit.collider == null)
-                return;                         
-
-            _draggable = hit.collider.GetComponent<DragCard>();
-            if (_draggable == null)
-                return;                        
-
-            _dragging   = true;
-            
-            // currentIcon = draggable.gameObject;
-            // startPos    = currentIcon.transform.position;
-            //
-            // currentIcon.transform.SetAsLastSibling();   
-            // currentIcon.GetComponent<CanvasGroup>().blocksRaycasts = false;
-
-            _draggable.OnBeginDrag();
-        }
-        
-        private void Construct()
-        {
-            _camera = Camera.main;
+            if (Input.GetMouseButtonDown(0)) MouseDown();
+            MouseDrag();
+            if (Input.GetMouseButtonUp(0)) MouseUp();
         }
     }
 }

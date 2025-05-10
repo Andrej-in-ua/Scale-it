@@ -8,12 +8,12 @@ namespace UI.Game.Inventory
 {
     public class UIInventory : MonoBehaviour
     {
-        [SerializeField] private RectTransform _bottomPanel;
+        public RectTransform _bottomPanel;
+        
         [SerializeField] private float _cardScaleInInventory = 0.8f;
         [SerializeField] private int _maxSlots = 11;
         [SerializeField] private int _maxCardsPerStack = 5;
         [SerializeField] private Canvas _canvas;
-        
         
         private readonly List<List<GameObject>> _cards = new();
 

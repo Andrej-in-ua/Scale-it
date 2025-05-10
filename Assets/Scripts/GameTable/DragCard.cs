@@ -1,18 +1,18 @@
 using System;
+using Services;
 using UI.Game.Inventory;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace GameTable
 {
-    public class DragCard : MonoBehaviour
+    public class DragCard : MonoBehaviour, IDraggable
     {
         [SerializeField] private GameObject _cardsCountWindow;
 
         [SerializeField] private float _moveSpeed;
         [SerializeField] private int _index;
         
-        public event Action OnDrag;
-
         private GameObject _bottomPanel;
         private UIInventory _inventory;
         private GridManager _gridManager;
@@ -175,13 +175,32 @@ namespace GameTable
         public void OnBeginDrag()
         {
             Debug.Log("OnBeginDrag");
-            OnDrag?.Invoke();
         }
 
         public void Drag(Vector3 screenToWorldPoint)
         {
             Debug.Log("Dragging");
             transform.position = screenToWorldPoint;
+        }
+
+        public void OnStartDrag()
+        {
+            Debug.Log("OnBeginDrag");
+        }
+
+        public void OnDrag(Vector3 mousePosition)
+        {
+            Debug.Log("Dragging");
+            transform.position = new Vector3(mousePosition.x, mousePosition.y, _rectTransform.position.z);
+        }
+
+        public void OnStopDrag(Vector3 mousePosition)
+        {
+            if (_inventory.IsCursorOnInventory())
+            {
+                transform.SetParent(_inventory._bottomPanel.transform);
+                LayoutRebuilder.MarkLayoutForRebuild(_inventory._bottomPanel);
+            }
         }
     }
 }
