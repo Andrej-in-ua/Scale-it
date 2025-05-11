@@ -5,8 +5,8 @@ public class Constants
     public const string UICardPreviewPath = "UICardPreviewPrefab";
     
     // View
-    public const string CardViewPath = "CardEntity/CardViewPrefab";
-    public const string GameTableGridPath = "GameTable/GridPrefab";
+    public const string CardViewPath = "GameTable/CardViewPrefab";
+    public const string GridPath = "GameTable/GridPrefab";
 
     // Services
     public const string InputServicePath = "InputService";

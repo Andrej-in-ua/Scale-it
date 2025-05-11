@@ -3,7 +3,7 @@ using Services;
 using Unity.Entities;
 using UnityEngine;
 
-namespace View.CardEntity
+namespace View.GameTable
 {
     public class CardViewFactory
     {
@@ -23,17 +23,6 @@ namespace View.CardEntity
         {
             var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
             var entity = entityManager.CreateEntity();
-
-            // For what it?
-            // entityManager.AddComponentData(entity, CardPositionComponent.Default);
-
-            // For what it?
-            // entityManager.AddComponentData(entity, new LocalTransform
-            // {
-            //     Position = new float3(worldPosition.x, worldPosition.y, 0),
-            //     Rotation = quaternion.identity,
-            //     Scale = 1f
-            // });
 
             var cardComponent = new CardComponent(cardId);
             entityManager.AddComponentData(entity, cardComponent);

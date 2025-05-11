@@ -4,7 +4,7 @@ using Unity.Entities;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace View.CardEntity
+namespace View.GameTable
 {
     public class CardView : MonoBehaviour, IDraggable
     {
@@ -31,39 +31,6 @@ namespace View.CardEntity
             _entityManager = entityManager;
         }
 
-        // public void SnapToGrid(Vector3Int gridPosition, Grid grid)
-        // {
-        //     AssertBaked();
-        //
-        //     transform.position = grid.CellToWorld(gridPosition);
-        //
-        //     // var positionInGrid = _entityManager.GetComponentData<CardPositionComponent>(_entity);
-        //     // positionInGrid.IsOnGrid = true;
-        //     // positionInGrid.GridPosition = new int2(gridPosition.x, gridPosition.y);
-        //     // _entityManager.SetComponentData(_entity, positionInGrid);
-        //     //
-        //     // var localPosition = _entityManager.GetComponentData<LocalTransform>(_entity);
-        //     // localPosition.Position = grid.CellToWorld(gridPosition);
-        //     // _entityManager.SetComponentData(_entity, localPosition);
-        // }
-        //
-        // public void ReleaseFromGrid()
-        // {
-        //     AssertBaked();
-        //
-        //     var positionInGrid = _entityManager.GetComponentData<CardPositionComponent>(_entity);
-        //     positionInGrid.IsOnGrid = false;
-        //     _entityManager.SetComponentData(_entity, positionInGrid);
-        // }
-
-        // private void Update()
-        // {
-        //     if (_entity == default || !_entityManager.Exists(_entity)) return;
-        //
-        //     var position = _entityManager.GetComponentData<LocalTransform>(_entity).Position;
-        //     transform.position = new Vector3(position.x, position.y, 0);
-        // }
-
         private void OnDestroy()
         {
             if (World.DefaultGameObjectInjectionWorld is { IsCreated: true } && _entityManager.Exists(_entity))
@@ -80,6 +47,7 @@ namespace View.CardEntity
         //     if (_entityManager.Exists(_entity))
         //         throw new System.Exception("Entity has already been destroyed");
         // }
+
         public void OnStartDrag()
         {
             // TODO: Release from grid

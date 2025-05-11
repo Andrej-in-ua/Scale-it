@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using View.CardEntity;
 
 namespace View.GameTable
 {

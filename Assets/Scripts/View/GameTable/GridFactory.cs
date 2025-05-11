@@ -7,7 +7,7 @@ namespace View.GameTable
     {
         private readonly IAssetProviderService _assetProviderService;
 
-        private GameObject GridPrefab => _gridPrefab ??= _assetProviderService.LoadAssetFromResources<GameObject>(Constants.GameTableGridPath);
+        private GameObject GridPrefab => _gridPrefab ??= _assetProviderService.LoadAssetFromResources<GameObject>(Constants.GridPath);
         private GameObject _gridPrefab;
 
         public GridFactory(IAssetProviderService assetProviderService)

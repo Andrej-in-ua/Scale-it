@@ -1,6 +1,5 @@
 using Services;
 using UI.Game;
-using View.CardEntity;
 using View.GameTable;
 using Zenject;
 
