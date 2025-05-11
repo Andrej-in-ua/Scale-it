@@ -13,14 +13,34 @@ namespace ECS.Components
 
         public float ProductionState;
 
-        [NativeDisableParallelForRestriction]
-        public NativeHashMap<int, int> ResourcesStored;
-        
-        [NativeDisableParallelForRestriction]
-        public NativeHashMap<int, int> ResourcesLock;
+        [NativeDisableParallelForRestriction] public NativeHashMap<int, int> ResourcesStored;
+
+        [NativeDisableParallelForRestriction] public NativeHashMap<int, int> ResourcesLock;
 
         public Card Card => Deck.Instance.cards[CardID];
         public TagDictionary Tags => Card.tags;
         public Recipe ActiveRecipe => Card.recipes[RecipeID];
+
+        public CardComponent(int cardID) : this(Deck.Instance.cards[cardID])
+        {
+        }
+
+        public CardComponent(Card cardConfig)
+        {
+            CardID = cardConfig.cardID;
+            RecipeID = -1;
+
+            ProductionState = -1f;
+
+            ResourcesStored = new NativeHashMap<int, int>(
+                (cardConfig.inputLinkCount + cardConfig.outputLinkCount) * 2,
+                Allocator.Persistent
+            );
+
+            ResourcesLock = new NativeHashMap<int, int>(
+                cardConfig.outputLinkCount * 2,
+                Allocator.Persistent
+            );
+        }
     }
 }
