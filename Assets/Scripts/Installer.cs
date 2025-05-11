@@ -36,6 +36,7 @@ public class Installer : MonoInstaller
     private void BindView()
     {
         Container.Bind<CardViewFactory>().AsSingle();
+        Container.Bind<CardViewPool>().AsSingle();
         Container.Bind<GridFactory>().AsSingle();
     }
 

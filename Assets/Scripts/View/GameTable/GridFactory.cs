@@ -18,7 +18,7 @@ namespace View.GameTable
         public Grid Create()
         {
             var view = Object.Instantiate(GridPrefab);
-            view.name = "Game Table Grid";
+            view.name = "GameTableGrid";
 
             return view.GetComponent<Grid>();
         }

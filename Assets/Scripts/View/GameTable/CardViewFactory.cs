@@ -9,35 +9,67 @@ namespace View.GameTable
     {
         private readonly IAssetProviderService _assetProviderService;
 
-        private GameObject CardEntityPrefab => _cardEntityPrefab ??=
-            _assetProviderService.LoadAssetFromResources<GameObject>(Constants.CardViewPath);
+        private GameObject CardViewPrefab
+        {
+            get
+            {
+                if (_cardViewPrefab is null)
+                {
+                    _cardViewPrefab = _assetProviderService.LoadAssetFromResources<GameObject>(Constants.CardViewPath);
+                    
+                    // Force disable the prefab for using cardView in pool
+                    _cardViewPrefab.SetActive(false);
+                }
 
-        private GameObject _cardEntityPrefab;
+                return _cardViewPrefab;
+            }
+        }
+
+        private GameObject _cardViewPrefab;
 
         public CardViewFactory(IAssetProviderService assetProviderService)
         {
             _assetProviderService = assetProviderService;
         }
 
-        public CardView Create(int cardId, Vector3 worldPosition = default)
+        public CardView Create(Transform parent, int cardId)
         {
             var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
             var entity = entityManager.CreateEntity();
 
-            var cardComponent = new CardComponent(cardId);
-            entityManager.AddComponentData(entity, cardComponent);
+            var cardViewGameObject = Object.Instantiate(CardViewPrefab, parent);
+            entityManager.AddComponentObject(entity, cardViewGameObject);
 
-            var view = Object.Instantiate(CardEntityPrefab, worldPosition, Quaternion.identity);
-            view.name = "Card_" + cardComponent.Card.cardID;
-
-            var cardView = view.GetComponent<CardView>();
-            cardView.BakeEntity(entity, entityManager);
+            var cardView = cardViewGameObject.GetComponent<CardView>();
+            cardView.BakeEntity(cardId, entity, entityManager);
             
-            cardView.Name.text = cardComponent.Card.name;
-
-            entityManager.AddComponentObject(entity, view);
+            // Card in pool must be reinitialized with default values and another cardId
+            cardView.OnCardViewEnable += OnCardViewEnable;
+            cardView.OnCardViewDisable += OnCardViewDisable;
+            cardView.OnCardViewDestroy += OnCardViewDestroy;
 
             return cardView;
+        }
+
+        private static void OnCardViewEnable(CardView cardView)
+        {
+            var cardComponent = new CardComponent(cardView.CardId);
+            cardView.EntityManager.AddComponentData(cardView.Entity, cardComponent);
+            
+            cardView.gameObject.name = "Card_" + cardComponent.Card.cardID;
+            cardView.Name.text = cardComponent.Card.name;
+            
+            cardView.EntityManager.SetEnabled(cardView.Entity, true);
+        }
+
+        private static void OnCardViewDisable(CardView cardView)
+        {
+            cardView.EntityManager.SetEnabled(cardView.Entity, false);
+        }
+
+        private static void OnCardViewDestroy(CardView cardView)
+        {
+            cardView.EntityManager.DestroyEntity(cardView.Entity);
         }
     }
 }

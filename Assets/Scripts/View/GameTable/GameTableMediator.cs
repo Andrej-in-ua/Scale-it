@@ -5,20 +5,22 @@ namespace View.GameTable
     public class GameTableMediator
     {
         private readonly GridFactory _gridFactory;
-        private readonly CardViewFactory _cardViewFactory;
-
+        private readonly CardViewPool _cardViewPool;
+        
         private Grid _grid;
 
-        public GameTableMediator(GridFactory gridFactory, CardViewFactory cardViewFactory)
+        public GameTableMediator(GridFactory gridFactory, CardViewPool cardViewPool)
         {
             _gridFactory = gridFactory;
-            _cardViewFactory = cardViewFactory;
+            _cardViewPool = cardViewPool;
         }
 
         public void ConstructGameTable()
         {
             _grid = _gridFactory.Create();
-            _grid.gameObject.SetActive(true);
+
+            _cardViewPool.Construct();
+            
 
             int[,] map = {
                 {32100, 32100, 32100},
@@ -30,8 +32,9 @@ namespace View.GameTable
             {
                 for (var j = 0; j < 3; j++)
                 {
-                    var card = _cardViewFactory.Create(map[j, i]);
+                    var card = _cardViewPool.GetCardView(map[j, i]);
                     SnapCardToGrid(card, new Vector3Int(i * 18, j * 24, 0));
+                    card.gameObject.SetActive(true);
                 }
             }
         }
@@ -51,6 +54,8 @@ namespace View.GameTable
                 Object.Destroy(_grid.gameObject);
                 _grid = null;
             }
+            
+            _cardViewPool.Destruct();
         }
         
         private void AssertConstructed()
