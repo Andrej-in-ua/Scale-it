@@ -79,7 +79,7 @@ namespace Services
             foreach (var hit in hits)
             {
                 IDraggable draggable = hit.collider?.GetComponent<IDraggable>();
-                Debug.Log("Dragger hit: " + draggable + " / " + hit.point + " / " + hit.distance);
+                // Debug.Log("Dragger hit: " + draggable + " / " + hit.point + " / " + hit.distance);
                 if (draggable != null)
                 {
                     yield return (draggable, hit.point);

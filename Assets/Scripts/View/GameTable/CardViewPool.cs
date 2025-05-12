@@ -65,7 +65,11 @@ namespace View.GameTable
         {
             if (_container != null)
             {
-                Object.Destroy(_container.gameObject);
+                if (_container.gameObject)
+                {
+                    Object.Destroy(_container.gameObject);
+                }
+
                 _container = null;
             }
         }

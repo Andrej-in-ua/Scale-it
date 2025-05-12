@@ -160,6 +160,7 @@ namespace UI.Game.Inventory
         public void Construct()
         {
             _canvas.worldCamera = Camera.main;
+            _canvas.sortingLayerName = "Inventory";
         }
 
         public HorizontalLayoutGroup GetLayout()

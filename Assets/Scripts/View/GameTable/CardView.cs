@@ -11,6 +11,14 @@ namespace View.GameTable
     {
         public TMP_Text Name => GetComponentInChildren<TMP_Text>();
         public SortingGroup SortingGroup => GetComponent<SortingGroup>();
+        
+        public PlaceableReference PlaceableReference => new PlaceableReference
+        {
+            Object = this,
+            ObjectSize = new Vector2Int(5, 7),
+            Padding = 1,
+            CellScale = 3,
+        };
 
         public event Action<CardView> OnCardViewEnable;
         public event Action<CardView> OnCardViewDisable;
