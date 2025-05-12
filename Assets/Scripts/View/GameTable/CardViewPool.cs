@@ -72,6 +72,13 @@ namespace View.GameTable
 
                 _container = null;
             }
+            
+            if (_pool != null)
+            {
+                _pool.Clear();
+                _pool = null;
+            }
+            
         }
     }
 }

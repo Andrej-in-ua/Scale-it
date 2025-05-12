@@ -41,7 +41,11 @@ namespace View.GameTable
         private static void OnCardViewEnable(CardView cardView)
         {
             var cardComponent = new CardComponent(cardView.CardId);
-            cardView.EntityManager.AddComponentData(cardView.Entity, cardComponent);
+
+            if (cardView.EntityManager.HasComponent<CardComponent>(cardView.Entity))
+                cardView.EntityManager.SetComponentData(cardView.Entity, cardComponent);
+            else
+                cardView.EntityManager.AddComponentData(cardView.Entity, cardComponent);
 
             cardView.gameObject.name = "Card_" + cardComponent.Card.cardID;
             cardView.Name.text = cardComponent.Card.name;
