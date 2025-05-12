@@ -10,7 +10,16 @@ namespace View.GameTable
     public class CardView : MonoBehaviour, IDraggable
     {
         public TMP_Text Name => GetComponentInChildren<TMP_Text>();
+        public SortingGroup SortingGroup => GetComponent<SortingGroup>();
         
+        public PlaceableReference PlaceableReference => new PlaceableReference
+        {
+            Object = this,
+            ObjectSize = new Vector2Int(5, 7),
+            Padding = 1,
+            CellScale = 3,
+        };
+
         public event Action<CardView> OnCardViewEnable;
         public event Action<CardView> OnCardViewDisable;
         public event Action<CardView> OnCardViewDestroy;
@@ -18,15 +27,7 @@ namespace View.GameTable
         public int CardId { get; private set; }
         public Entity Entity { get; private set; }
         public EntityManager EntityManager { get; private set; }
-
-        private SortingGroup _sortingGroup;
-        private string _originalSortingLayer;
-
-        private void Awake()
-        {
-            _sortingGroup = GetComponent<SortingGroup>();
-        }
-
+        
         public void BakeEntity(int cardId, Entity entity, EntityManager entityManager)
         {
             if (Entity != default)
@@ -76,26 +77,6 @@ namespace View.GameTable
         
             if (!EntityManager.Exists(Entity))
                 throw new System.Exception("Entity has already been destroyed");
-        }
-
-        public void OnStartDrag()
-        {
-            // TODO: Release from grid
-            _originalSortingLayer = _sortingGroup.sortingLayerName;
-            _sortingGroup.sortingLayerName = IDraggable.DraggableViewSortingLayerName;
-
-            transform.position = new Vector3(transform.position.x, transform.position.y, 100);
-        }
-
-        public void OnDrag(Vector3 mousePosition)
-        {
-            transform.position = new Vector3(mousePosition.x, mousePosition.y, transform.position.z);
-        }
-
-        public void OnStopDrag(Vector3 mousePosition)
-        {
-            // TODO: Snap to grid
-            _sortingGroup.sortingLayerName = _originalSortingLayer;
         }
     }
 }

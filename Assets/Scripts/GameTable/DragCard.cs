@@ -6,6 +6,7 @@ using UnityEngine.UI;
 
 namespace GameTable
 {
+    [Obsolete]
     public class DragCard : MonoBehaviour, IDraggable
     {
         [SerializeField] private GameObject _cardsCountWindow;
