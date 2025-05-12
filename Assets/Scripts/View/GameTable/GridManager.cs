@@ -217,7 +217,8 @@ namespace View.GameTable
         public Vector3 CellToWorld(Vector2Int cellPosition)
         {
             AssertConstructed();
-            return _grid.CellToWorld((Vector3Int)cellPosition);
+
+            return _grid.CellToWorld((Vector3Int)cellPosition) + (_grid.cellSize / 2);
         }
 
         private void AssertConstructed()
