@@ -9,21 +9,8 @@ namespace View.GameTable
     {
         private readonly IAssetProviderService _assetProviderService;
 
-        private GameObject CardViewPrefab
-        {
-            get
-            {
-                if (_cardViewPrefab is null)
-                {
-                    _cardViewPrefab = _assetProviderService.LoadAssetFromResources<GameObject>(Constants.CardViewPath);
-                    
-                    // Force disable the prefab for using cardView in pool
-                    _cardViewPrefab.SetActive(false);
-                }
-
-                return _cardViewPrefab;
-            }
-        }
+        private GameObject CardViewPrefab => _cardViewPrefab ??=
+            _assetProviderService.LoadAssetFromResourcesForceInactive<GameObject>(Constants.CardViewPath);
 
         private GameObject _cardViewPrefab;
 
@@ -42,7 +29,7 @@ namespace View.GameTable
 
             var cardView = cardViewGameObject.GetComponent<CardView>();
             cardView.BakeEntity(cardId, entity, entityManager);
-            
+
             // Card in pool must be reinitialized with default values and another cardId
             cardView.OnCardViewEnable += OnCardViewEnable;
             cardView.OnCardViewDisable += OnCardViewDisable;
@@ -55,10 +42,10 @@ namespace View.GameTable
         {
             var cardComponent = new CardComponent(cardView.CardId);
             cardView.EntityManager.AddComponentData(cardView.Entity, cardComponent);
-            
+
             cardView.gameObject.name = "Card_" + cardComponent.Card.cardID;
             cardView.Name.text = cardComponent.Card.name;
-            
+
             cardView.EntityManager.SetEnabled(cardView.Entity, true);
         }
 
