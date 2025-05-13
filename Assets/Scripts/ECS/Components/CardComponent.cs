@@ -35,7 +35,7 @@ namespace ECS.Components
             var initialCapacity = (cardConfig.inputLinkCount + cardConfig.outputLinkCount) * 2;
 
             ResourcesStored = new NativeHashMap<int, int>(initialCapacity, Allocator.Persistent);
-            ResourcesLock = new NativeHashMap<int, int>(cardConfig.outputLinkCount * 2,Allocator.Persistent
+            ResourcesLock = new NativeHashMap<int, int>(cardConfig.outputLinkCount * 2, Allocator.Persistent
             );
         }
     }
