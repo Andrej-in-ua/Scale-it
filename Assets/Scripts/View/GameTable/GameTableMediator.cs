@@ -6,26 +6,22 @@ namespace View.GameTable
     {
         private readonly GridManager _gridManager;
         private readonly CardViewPool _cardViewPool;
-        private readonly CardDragController _cardDragController;
         
         private bool _isConstructed;
 
         public GameTableMediator(
             GridManager gridManager,
-            CardViewPool cardViewPool,
-            CardDragController cardDragController
+            CardViewPool cardViewPool
         )
         {
             _gridManager = gridManager;
             _cardViewPool = cardViewPool;
-            _cardDragController = cardDragController;
         }
 
         public void ConstructGameTable()
         {
             _gridManager.Construct();
             _cardViewPool.Construct();
-            _cardDragController.Construct();
             
             _isConstructed = true;
 
@@ -64,8 +60,7 @@ namespace View.GameTable
         public void DestructGameTable()
         {
             _isConstructed = false;
-
-            _cardDragController.Destruct();
+            
             _cardViewPool.Destruct();
             _gridManager.Destruct();
         }

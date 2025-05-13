@@ -1,4 +1,5 @@
-﻿using Services;
+﻿using System;
+using Services;
 using UnityEngine;
 
 namespace View.GameTable
@@ -9,24 +10,14 @@ namespace View.GameTable
         private const string CardViewSortingLayerNameDraggable = IDraggable.DraggableViewSortingLayerName;
 
         private readonly GridManager _gridManager;
-        private readonly InputService _inputService;
-
         private Vector3 _originalPosition;
 
-        public CardDragController(GridManager gridManager, InputService inputService)
+        public CardDragController(GridManager gridManager)
         {
             _gridManager = gridManager;
-            _inputService = inputService;
-        }
-        
-        public void Construct()
-        {
-            _inputService.OnStartDrag += HandleStartDrag;
-            _inputService.OnDrag += HandleDrag;
-            _inputService.OnStopDrag += HandleStopDrag;
         }
 
-        private bool HandleStartDrag(IDraggable draggable, Vector3 worldPosition, Vector3 hitPoint)
+        public bool HandleStartDrag(IDraggable draggable, Vector3 worldPosition, Vector3 hitPoint)
         {
             if (draggable is not CardView cardView) return false;
 
@@ -38,14 +29,14 @@ namespace View.GameTable
             return true;
         }
 
-        private void HandleDrag(IDraggable draggable, Vector3 worldPosition)
+        public void HandleDrag(IDraggable draggable, Vector3 worldPosition)
         {
             if (draggable is not CardView cardView) return;
 
             cardView.transform.SetPositionAndRotation(worldPosition, Quaternion.identity);
         }
 
-        private void HandleStopDrag(IDraggable draggable, Vector3 worldPosition)
+        public void HandleStopDrag(IDraggable draggable, Vector3 worldPosition)
         {
             if (draggable is not CardView cardView) return;
             
@@ -56,16 +47,6 @@ namespace View.GameTable
             
             cardView.transform.SetPositionAndRotation(placedPosition.GetValueOrDefault(_originalPosition), Quaternion.identity);
             _originalPosition = default;
-        }
-
-        public void Destruct()
-        {
-            if (_inputService != null)
-            {
-                _inputService.OnStartDrag -= HandleStartDrag;
-                _inputService.OnDrag -= HandleDrag;
-                _inputService.OnStopDrag -= HandleStopDrag;
-            }
         }
     }
 }

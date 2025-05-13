@@ -15,18 +15,16 @@ namespace UI.Game
             _assetProviderService = assetProviderService;
         }
 
-        public UICardPreview CreateUICard(Transform parent, UIInventory _inventory, int cardId, out DragCard dragCard)
+        public UICardPreview CreateUICard(Transform parent, UIInventory _inventory, int cardId)
         {
             var cardPrefab = _assetProviderService.LoadAssetFromResources<GameObject>(Constants.UICardPreviewPath);
             var cardGameobject = Object.Instantiate(cardPrefab, parent);
             UICardPreview card = cardGameobject.GetComponent<UICardPreview>();
-            dragCard = cardGameobject.GetComponent<DragCard>();
             
             card.name += cardId;
             card.Name.text = "Card " + cardId;
-
-            dragCard.Construct(_inventory);
-            dragCard.CardId = cardId;
+            card.Construct(_inventory);
+            card.CardId = cardId;
            // ConstructLinePortsForCard(card.transform, 4, 4, 2);
 
             return card;

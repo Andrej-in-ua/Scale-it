@@ -14,18 +14,21 @@ public class MainState : State
     private readonly IUIGameMediator _uiGameMediator;
     private readonly GameTableMediator _gameTableMediator;
     private readonly InputService _inputService;
+    private readonly CardDragController _cardDragController;
 
     public MainState(
         StateMachineBase stateMachine,
         IUIGameMediator uiGameMediator,
         GameTableMediator gameTableMediator,
-        InputService inputService
+        InputService inputService,
+        CardDragController cardDragController
     )
     {
         _stateMachine = stateMachine;
         _uiGameMediator = uiGameMediator;
         _gameTableMediator = gameTableMediator;
         _inputService = inputService;
+        _cardDragController = cardDragController;
     }
 
     public override void Enter()
@@ -52,12 +55,20 @@ public class MainState : State
     {
         Application.quitting += Exit;
         SceneManager.sceneLoaded += OnSceneLoaded;
+        
+        _inputService.OnStartDrag += _cardDragController.HandleStartDrag;
+        _inputService.OnDrag += _cardDragController.HandleDrag;
+        _inputService.OnStopDrag += _cardDragController.HandleStopDrag;
     }
 
     public void Unsubscribe()
     {
         Application.quitting -= Exit;
         SceneManager.sceneLoaded -= OnSceneLoaded;
+        
+        _inputService.OnStartDrag -= _cardDragController.HandleStartDrag;
+        _inputService.OnDrag -= _cardDragController.HandleDrag;
+        _inputService.OnStopDrag -= _cardDragController.HandleStopDrag;
     }
 
     public override void Exit()

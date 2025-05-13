@@ -7,6 +7,6 @@ namespace UI.Game
 {
     public interface IUICardFactory
     {
-        UICardPreview CreateUICard(Transform parent, UIInventory _inventory, int cardId, out DragCard dragCard);
+        UICardPreview CreateUICard(Transform parent, UIInventory _inventory, int cardId);
     }
 }

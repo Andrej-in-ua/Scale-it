@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using GameTable;
+using UI.Game.CardPreviews;
 using UI.Game.Inventory;
 using UnityEngine;
 
@@ -11,7 +12,7 @@ namespace UI.Game
         private readonly UIGameFactory _uiFactory;
 
         private UIInventory _inventory;
-        private List<DragCard> _dragCards;
+        private List<UICardPreview> _dragCards;
         private Transform _inventoryPanel;
 
         public UIGameMediator(
@@ -30,17 +31,17 @@ namespace UI.Game
 
             for (int i = 0; i < 10; i++)
             {
-                var card = _uiCardFactory.CreateUICard(_inventoryPanel, _inventory, Random.Range(0, 10), out DragCard dragCard);
-                dragCard.OnStartDragCardPreview += MoveCardToTable;
+                var card = _uiCardFactory.CreateUICard(_inventoryPanel, _inventory, Random.Range(0, 10));
+                card.OnStartDragCardPreview += MoveCardToTable;
                 
-                _inventory.AddCardToInventory(card.GetComponent<DragCard>());
+                _inventory.AddCardToInventory(card);
             }
         }
 
-        private void MoveCardToTable(DragCard container)
+        private void MoveCardToTable(UICardPreview container)
         {
-            var card = _uiCardFactory.CreateUICard(_inventoryPanel, _inventory, container.CardId, out DragCard dragCard);
-            _inventory.TakeCardFromStack(container.CardId);
+            var card = _uiCardFactory.CreateUICard(_inventoryPanel, _inventory, container.CardId);
+            _inventory.TakeCardFromStack(card.CardId);
         }
     }
 }

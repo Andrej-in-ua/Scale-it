@@ -12,7 +12,7 @@ namespace UI.Game.Inventory
         public RectTransform _bottomPanel;
         [SerializeField] private Canvas _canvas;
         //TODO change to Dictionary (CardType, CardAmount)
-        private readonly List<(DragCard card, int stack)> _cards = new();
+        private readonly List<(UICardPreview card, int stack)> _cards = new();
 
         public void TakeCardFromStack(int cardId)
         {
@@ -40,7 +40,7 @@ namespace UI.Game.Inventory
             }
         }
 
-        public void AddCardToInventory(DragCard newCard)
+        public void AddCardToInventory(UICardPreview newCard)
         {
             var (inventoryHaveSameCard, sameCardInInventory, cardIndex) = DoesInventoryHaveSameCard(newCard);
 
@@ -57,7 +57,7 @@ namespace UI.Game.Inventory
             LayoutRebuilder.MarkLayoutForRebuild(_bottomPanel);
         }
 
-        private void AddCardToExistingStack(DragCard sameCardInInventory, DragCard newCard, int cardIndex)
+        private void AddCardToExistingStack(UICardPreview sameCardInInventory, UICardPreview newCard, int cardIndex)
         {
             if (cardIndex < 0 || cardIndex >= _cards.Count)
                 return;
@@ -75,7 +75,7 @@ namespace UI.Game.Inventory
             Destroy(newCard.gameObject);
         }
 
-        private bool AreCardsSame(DragCard firstCard, DragCard secondCard)
+        private bool AreCardsSame(UICardPreview firstCard, UICardPreview secondCard)
         {
             return firstCard.CardId == secondCard.CardId;
         }
@@ -85,7 +85,7 @@ namespace UI.Game.Inventory
             return RectTransformUtility.RectangleContainsScreenPoint(_bottomPanel, Input.mousePosition, Camera.main);
         }
 
-        public (bool, DragCard, int) DoesInventoryHaveSameCard(DragCard card)
+        public (bool, UICardPreview, int) DoesInventoryHaveSameCard(UICardPreview card)
         {
             for (int i = 0; i < _cards.Count; i++)
             {
@@ -97,7 +97,7 @@ namespace UI.Game.Inventory
             return (false, null, 0);
         }
 
-        public bool DoesCardHaveStack(DragCard card)
+        public bool DoesCardHaveStack(UICardPreview card)
         {
             for (int i = 0; i < _cards.Count; i++)
             {
