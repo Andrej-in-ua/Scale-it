@@ -10,42 +10,34 @@ namespace UI.Game.Inventory
     public class UIInventory : MonoBehaviour
     {
         public RectTransform _bottomPanel;
-
-        [SerializeField] private int _maxCardsPerStack = 5;
         [SerializeField] private Canvas _canvas;
-
+        //TODO change to Dictionary (CardType, CardAmount)
         private readonly List<(DragCard card, int stack)> _cards = new();
 
-        private IUICardFactory _uiCardFactory;
-
-        public GameObject TakeCardFromStack(DragCard card)
+        public void TakeCardFromStack(int cardId)
         {
-            UICardPreview spawnedCard = _uiCardFactory.CreateUICard(_bottomPanel, "Card from stack");
-
             for (int i = 0; i < _cards.Count; i++)
             {
-                if (_cards[i].card == card)
+                if (_cards[i].card.CardId == cardId)
                 {
                     var existing = _cards[i];
                     existing.stack--;
-
                     _cards[i] = existing;
 
                     if (existing.stack > 1)
                     {
-                        TMP_Text cardsCountText = card.CardsCountWindow.transform.GetChild(0).GetComponent<TMP_Text>();
+                        TMP_Text cardsCountText = _cards[i].card.CardsCountWindow.transform.GetChild(0).GetComponent<TMP_Text>();
                         if (cardsCountText != null)
                             cardsCountText.text = existing.stack.ToString();
                     }
                     else
                     {
-                        card.CardsCountWindow.SetActive(false);
+                        _cards[i].card.CardsCountWindow.SetActive(false);
                     }
 
                     break;
                 }
             }
-            return spawnedCard.gameObject;
         }
 
         public void AddCardToInventory(DragCard newCard)
@@ -71,25 +63,21 @@ namespace UI.Game.Inventory
                 return;
 
             var existing = _cards[cardIndex];
+            existing.stack++;
+            _cards[cardIndex] = existing;
 
-            if (existing.stack < _maxCardsPerStack)
-            {
-                existing.stack++;
-                _cards[cardIndex] = existing;
+            sameCardInInventory.CardsCountWindow.SetActive(true);
 
-                sameCardInInventory.CardsCountWindow.SetActive(true);
+            TMP_Text cardsCountText =
+                sameCardInInventory.CardsCountWindow.transform.GetChild(0).GetComponent<TMP_Text>();
+            cardsCountText.text = existing.stack.ToString();
 
-                TMP_Text cardsCountText =
-                    sameCardInInventory.CardsCountWindow.transform.GetChild(0).GetComponent<TMP_Text>();
-                cardsCountText.text = existing.stack.ToString();
-
-                Destroy(newCard.gameObject);
-            }
+            Destroy(newCard.gameObject);
         }
 
         private bool AreCardsSame(DragCard firstCard, DragCard secondCard)
         {
-            return firstCard.Index == secondCard.Index;
+            return firstCard.CardId == secondCard.CardId;
         }
 
         public bool IsCursorOnInventory()
@@ -101,7 +89,7 @@ namespace UI.Game.Inventory
         {
             for (int i = 0; i < _cards.Count; i++)
             {
-                if (AreCardsSame(_cards[i].card, card) && _cards[i].card != card && _cards[i].stack < _maxCardsPerStack)
+                if (AreCardsSame(_cards[i].card, card) && _cards[i].card != card)
                 {
                     return (true, _cards[i].card, i);
                 }
@@ -124,9 +112,8 @@ namespace UI.Game.Inventory
             return false;
         }
 
-        public void Construct(IUICardFactory uiCardFactory)
+        public void Construct()
         {
-            _uiCardFactory = uiCardFactory;
             _canvas.worldCamera = Camera.main;
         }
     }

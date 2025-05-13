@@ -11,8 +11,8 @@ namespace UI.Game
         private readonly UIGameFactory _uiFactory;
 
         private UIInventory _inventory;
-
         private List<DragCard> _dragCards;
+        private Transform _inventoryPanel;
 
         public UIGameMediator(
             IUICardFactory uiCardFactory,
@@ -26,14 +26,21 @@ namespace UI.Game
         public void ConstructUI()
         {
             _inventory = _uiFactory.CreateInventory();
+            _inventoryPanel = _inventory.transform.GetChild(0).transform;
 
             for (int i = 0; i < 10; i++)
             {
-                Transform inventoryPanel = _inventory.transform.GetChild(0).transform;
-                var card = _uiCardFactory.CreateUICard(inventoryPanel, "Card " + i);
+                var card = _uiCardFactory.CreateUICard(_inventoryPanel, _inventory, Random.Range(0, 10), out DragCard dragCard);
+                dragCard.OnStartDragCardPreview += MoveCardToTable;
                 
                 _inventory.AddCardToInventory(card.GetComponent<DragCard>());
             }
+        }
+
+        private void MoveCardToTable(DragCard container)
+        {
+            var card = _uiCardFactory.CreateUICard(_inventoryPanel, _inventory, container.CardId, out DragCard dragCard);
+            _inventory.TakeCardFromStack(container.CardId);
         }
     }
 }

@@ -22,7 +22,7 @@ namespace UI.Game
             GameObject inventory = Object.Instantiate(inventoryPrefab);
             
             var uiInventory = inventory.GetComponent<UIInventory>();
-            uiInventory.Construct(_uiCardFactory);
+            uiInventory.Construct();
 
             return uiInventory;
         }  
