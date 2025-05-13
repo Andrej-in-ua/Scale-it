@@ -1,5 +1,7 @@
+using GameTable;
 using Services;
 using UI.Game.CardPreviews;
+using UI.Game.Inventory;
 using UnityEngine;
 
 namespace UI.Game
@@ -13,14 +15,18 @@ namespace UI.Game
             _assetProviderService = assetProviderService;
         }
 
-        public UICardPreview CreateUICard(Transform parent, string name)
+        public UICardPreview CreateUICard(Transform parent, UIInventory _inventory, int cardId, out DragCard dragCard)
         {
             var cardPrefab = _assetProviderService.LoadAssetFromResources<GameObject>(Constants.CardPath);
-            UICardPreview card = Object.Instantiate(cardPrefab, parent).GetComponent<UICardPreview>();
+            var cardGameobject = Object.Instantiate(cardPrefab, parent);
+            UICardPreview card = cardGameobject.GetComponent<UICardPreview>();
+            dragCard = cardGameobject.GetComponent<DragCard>();
             
-            card.name = name;
-            card.Name.text = name;
+            card.name += cardId;
+            card.Name.text = "Card " + cardId;
 
+            dragCard.Construct(_inventory);
+            dragCard.CardId = cardId;
            // ConstructLinePortsForCard(card.transform, 4, 4, 2);
 
             return card;

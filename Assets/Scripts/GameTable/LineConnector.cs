@@ -104,35 +104,35 @@ namespace GameTable
 
         public void CanDrawLine()
         {
-            if (!_card.IsCardInInventory())
-            {
-                _isDrawing = true;
-
-                DisconnectBoth();
-
-                _foundPath.Clear();
-            }
+            // if (!_card.IsCardInInventory())
+            // {
+            //     _isDrawing = true;
+            //
+            //     DisconnectBoth();
+            //
+            //     _foundPath.Clear();
+            // }
         }
 
         public void OnPointerUp(PointerEventData eventData)
         {
-            if (!_card.IsCardInInventory())
-            {
-                _isDrawing = false;
-
-                LineConnector targetButton = GetButtonUnderCursor(eventData);
-
-                DragCard parentOfTarget = targetButton.transform.parent.GetComponent<DragCard>();
-
-                if (targetButton != null && targetButton != this && IsValidConnection(targetButton) && !parentOfTarget.IsCardInInventory())
-                {
-                    CreateFinalLine(targetButton);
-                }
-                else
-                {
-                    _lineForPathCreation.positionCount = 0;
-                }
-            }
+            // if (!_card.IsCardInInventory())
+            // {
+            //     _isDrawing = false;
+            //
+            //     LineConnector targetButton = GetButtonUnderCursor(eventData);
+            //
+            //     DragCard parentOfTarget = targetButton.transform.parent.GetComponent<DragCard>();
+            //
+            //     if (targetButton != null && targetButton != this && IsValidConnection(targetButton) && !parentOfTarget.IsCardInInventory())
+            //     {
+            //         CreateFinalLine(targetButton);
+            //     }
+            //     else
+            //     {
+            //         _lineForPathCreation.positionCount = 0;
+            //     }
+            // }
         }
 
         private async void CreateFinalLine(LineConnector targetLineConnector)
