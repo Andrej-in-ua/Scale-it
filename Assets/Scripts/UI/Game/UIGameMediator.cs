@@ -31,6 +31,8 @@ namespace UI.Game
             {
                 Transform inventoryPanel = _inventory.transform.GetChild(0).transform;
                 var card = _uiCardFactory.CreateUICard(inventoryPanel, "Card " + i);
+                
+                _inventory.AddCardToInventory(card.GetComponent<DragCard>());
             }
         }
     }
