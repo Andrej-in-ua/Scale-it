@@ -7,9 +7,11 @@ namespace UI.Game
     public class UIGameFactory
     {
         private readonly IAssetProviderService _assetProviderService;
+        private IUICardFactory _uiCardFactory;
 
-        public UIGameFactory(IAssetProviderService assetProviderService)
+        public UIGameFactory(IAssetProviderService assetProviderService, IUICardFactory uiCardFactory)
         {
+            _uiCardFactory = uiCardFactory;
             _assetProviderService = assetProviderService;
         }
         
@@ -20,7 +22,7 @@ namespace UI.Game
             GameObject inventory = Object.Instantiate(inventoryPrefab);
             
             var uiInventory = inventory.GetComponent<UIInventory>();
-            uiInventory.Construct();
+            uiInventory.Construct(_uiCardFactory);
 
             return uiInventory;
         }  

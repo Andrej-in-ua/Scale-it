@@ -27,7 +27,7 @@ namespace UI.Game
         {
             _inventory = _uiFactory.CreateInventory();
 
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 10; i++)
             {
                 Transform inventoryPanel = _inventory.transform.GetChild(0).transform;
                 var card = _uiCardFactory.CreateUICard(inventoryPanel, "Card " + i);
