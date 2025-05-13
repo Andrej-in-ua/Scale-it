@@ -1,139 +1,83 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using DG.Tweening;
+using GameTable;
 using TMPro;
+using UI.Game.CardPreviews;
 
 namespace UI.Game.Inventory
 {
     public class UIInventory : MonoBehaviour
     {
         public RectTransform _bottomPanel;
-        
-        [SerializeField] private float _cardScaleInInventory = 0.8f;
-        [SerializeField] private int _maxSlots = 11;
-        [SerializeField] private int _maxCardsPerStack = 5;
         [SerializeField] private Canvas _canvas;
-        
-        private readonly List<List<GameObject>> _cards = new();
+        //TODO change to Dictionary (CardType, CardAmount)
+        private readonly List<(DragCard card, int stack)> _cards = new();
 
-        public void AddCard(RectTransform card)
+        public void TakeCardFromStack(int cardId)
         {
-            GameObject cardGO = card.gameObject;
-            bool addedToStack = false;
-            bool foundMatchingStack = false;
-
-            // foreach (var stack in _cards)
-            // {
-            //     if (stack.Count > 0 && AreCardsEqual(stack[0], cardGO) && stack.Count < _maxCardsPerStack)
-            //     {
-            //         AddToExistingStack(card, stack);
-            //         addedToStack = foundMatchingStack = true;
-            //         break;
-            //     }
-            // }
-
-            if (!addedToStack && _cards.Count < _maxSlots)
+            for (int i = 0; i < _cards.Count; i++)
             {
-                _cards.Add(new List<GameObject> { cardGO });
-                addedToStack = true;
-            }
+                if (_cards[i].card.CardId == cardId)
+                {
+                    var existing = _cards[i];
+                    existing.stack--;
+                    _cards[i] = existing;
 
-            if (addedToStack)
-            {
-                PlaceCard(card, foundMatchingStack);
-                LayoutRebuilder.ForceRebuildLayoutImmediate(GetComponent<RectTransform>());
+                    if (existing.stack > 1)
+                    {
+                        TMP_Text cardsCountText = _cards[i].card.CardsCountWindow.transform.GetChild(0).GetComponent<TMP_Text>();
+                        if (cardsCountText != null)
+                            cardsCountText.text = existing.stack.ToString();
+                    }
+                    else
+                    {
+                        _cards[i].card.CardsCountWindow.SetActive(false);
+                    }
+
+                    break;
+                }
             }
         }
 
-        private void AddToExistingStack(RectTransform card, List<GameObject> stack)
+        public void AddCardToInventory(DragCard newCard)
         {
-            GameObject cardGO = card.gameObject;
+            var (inventoryHaveSameCard, sameCardInInventory, cardIndex) = DoesInventoryHaveSameCard(newCard);
 
-            card.SetParent(stack[0].transform);
-            card.position = stack[0].transform.position;
-
-            card.DOScale(1f, 0.25f).From(card.localScale).SetEase(Ease.OutSine);
-
-            // GameObject counter = stack[0].GetComponent<DragCard>().GetCardsCountWindow();
-            // counter.SetActive(true);
-            // counter.transform.SetAsLastSibling();
-            //
-            // stack.Add(cardGO);
-            //
-            // TMP_Text countText = counter.transform.GetChild(0).GetComponent<TMP_Text>();
-            //countText.text = stack.Count.ToString();
-        }
-
-        private void PlaceCard(RectTransform card, bool inStack)
-        {
-            if (!inStack)
+            if (inventoryHaveSameCard)
             {
-                card.SetParent(transform);
-                card.localScale = Vector3.one * _cardScaleInInventory;
+                AddCardToExistingStack(sameCardInInventory, newCard, cardIndex);
             }
             else
             {
-                card.localScale = Vector3.one;
+                _cards.Add((newCard, 1));
             }
+
+            newCard.transform.SetParent(_bottomPanel.transform);
+            LayoutRebuilder.MarkLayoutForRebuild(_bottomPanel);
         }
 
-        // private bool AreCardsEqual(GameObject a, GameObject b)
-        // {
-        //     /return a.GetComponent<DragCard>().GetCardIndex() == b.GetComponent<DragCard>().GetCardIndex();
-        // }
-
-        public void RemoveCard(RectTransform card, Transform newParent)
+        private void AddCardToExistingStack(DragCard sameCardInInventory, DragCard newCard, int cardIndex)
         {
-            GameObject cardGO = card.gameObject;
+            if (cardIndex < 0 || cardIndex >= _cards.Count)
+                return;
 
-            SetNewParent(card, newParent.gameObject);
+            var existing = _cards[cardIndex];
+            existing.stack++;
+            _cards[cardIndex] = existing;
 
-            for (int i = _cards.Count - 1; i >= 0; i--)
-            {
-                // var stack = _cards[i];
-                // if (!stack.Contains(cardGO)) continue;
-                //
-                // stack.Remove(cardGO);
-                //
-                // if (stack.Count > 0)
-                // {
-                //     GameObject counter = stack[0].GetComponent<DragCard>().GetCardsCountWindow();
-                //     counter.SetActive(stack.Count > 1);
-                //     counter.transform.SetAsLastSibling();
-                //
-                //     TMP_Text countText = counter.transform.GetChild(0).GetComponent<TMP_Text>();
-                //     countText.text = stack.Count.ToString();
-                // }
-                // else
-                // {
-                //     GetComponent<HorizontalLayoutGroup>().enabled = false;
-                //     cardGO.GetComponent<DragCard>().GetCardsCountWindow().SetActive(false);
-                //     _cards.RemoveAt(i);
-                // }
+            sameCardInInventory.CardsCountWindow.SetActive(true);
 
-                break;
-            }
+            TMP_Text cardsCountText =
+                sameCardInInventory.CardsCountWindow.transform.GetChild(0).GetComponent<TMP_Text>();
+            cardsCountText.text = existing.stack.ToString();
+
+            Destroy(newCard.gameObject);
         }
 
-        private void SetNewParent(RectTransform card, GameObject newParentObj)
+        private bool AreCardsSame(DragCard firstCard, DragCard secondCard)
         {
-            Vector3 oldPos = card.position;
-
-            card.SetParent(newParentObj.transform, true);
-
-            card.anchorMin = Vector2.one * 0.5f;
-            card.anchorMax = Vector2.one * 0.5f;
-            card.pivot = Vector2.one * 0.5f;
-
-            card.position = oldPos;
-        }
-
-        public void MoveCard(RectTransform card, float targetScale, GameObject newParentObj)
-        {
-            SetNewParent(card, newParentObj);
-
-            card.DOScale(targetScale, 0.25f).From(card.localScale).SetEase(Ease.OutSine);
+            return firstCard.CardId == secondCard.CardId;
         }
 
         public bool IsCursorOnInventory()
@@ -141,19 +85,30 @@ namespace UI.Game.Inventory
             return RectTransformUtility.RectangleContainsScreenPoint(_bottomPanel, Input.mousePosition, Camera.main);
         }
 
-        public bool DoesInventoryHaveFreePlace(GameObject card)
+        public (bool, DragCard, int) DoesInventoryHaveSameCard(DragCard card)
         {
-            if (_cards.Count < _maxSlots) return true;
-
-            if (_cards.Count == _maxSlots)
+            for (int i = 0; i < _cards.Count; i++)
             {
-                foreach (var stack in _cards)
+                if (AreCardsSame(_cards[i].card, card) && _cards[i].card != card)
                 {
-                  //  if (AreCardsEqual(stack[0], card) && stack.Count < _maxCardsPerStack)
-                        return true;
+                    return (true, _cards[i].card, i);
                 }
             }
+            return (false, null, 0);
+        }
 
+        public bool DoesCardHaveStack(DragCard card)
+        {
+            for (int i = 0; i < _cards.Count; i++)
+            {
+                if (_cards[i].card == card)
+                {
+                    if (_cards[i].stack > 1)
+                    {
+                        return true;
+                    }
+                }
+            }
             return false;
         }
 
@@ -161,11 +116,6 @@ namespace UI.Game.Inventory
         {
             _canvas.worldCamera = Camera.main;
             _canvas.sortingLayerName = "Inventory";
-        }
-
-        public HorizontalLayoutGroup GetLayout()
-        {
-            return GetComponent<HorizontalLayoutGroup>();
         }
     }
 }
