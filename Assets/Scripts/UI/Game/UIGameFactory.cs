@@ -1,10 +1,11 @@
+using GameTable;
 using Services;
 using UI.Game.Inventory;
 using UnityEngine;
 
 namespace UI.Game
 {
-    public class UIGameFactory
+    public class UIGameFactory : IUIGameFactory
     {
         private readonly IAssetProviderService _assetProviderService;
         private IUICardFactory _uiCardFactory;
@@ -25,6 +26,16 @@ namespace UI.Game
             uiInventory.Construct();
 
             return uiInventory;
-        }  
+        }
+
+        public CardSpawner CreateCardSpawner(Transform parent)
+        {
+            var cardSpawnerPrefab = _assetProviderService.LoadAssetFromResources<GameObject>(Constants.CardSpawnerPath)
+                .gameObject;
+            
+            GameObject cardSpawnerButton = Object.Instantiate(cardSpawnerPrefab, parent);
+
+            return cardSpawnerButton.GetComponent<CardSpawner>();
+        }
     }
 }

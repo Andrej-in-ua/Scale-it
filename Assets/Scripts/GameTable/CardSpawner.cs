@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 
@@ -5,21 +6,15 @@ namespace GameTable
 {
     public class CardSpawner : MonoBehaviour
     {
-        [SerializeField] private GameObject _parentCanvasForCard;
         [SerializeField] private TMP_Dropdown _IDCardDropdown;
-        [SerializeField] private GameObject[] _cards;
+        
+        public event Action<int> OnCardSpawnRequested;
 
-
-       
-
-      /* public void DropCard()
+        public void SpawnCard()
         {
-            if (_lastSpawnedCard != null)
-            {
-                _lastSpawnedCard.StopFollowingCursor();
-                _lastSpawnedCard = null;
-            }
-        }*/
+            int cardId = _IDCardDropdown.value;
+            OnCardSpawnRequested?.Invoke(cardId);
+        }
     }
 }
 

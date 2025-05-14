@@ -160,7 +160,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -218,7 +218,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _bottomPanel: {fileID: 2979555891027450427}
-  _cardScaleInInventory: 0.8
-  _maxSlots: 11
-  _maxCardsPerStack: 5
   _canvas: {fileID: 514423487452501422}

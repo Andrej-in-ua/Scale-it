@@ -401,9 +401,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 59f0ad8b528553c4882a214a702edea7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _cardsCountWindow: {fileID: 0}
-  _moveSpeed: 0
-  _index: 0
 --- !u!1 &619394800
 GameObject:
   m_ObjectHideFlags: 0
@@ -537,9 +534,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 59f0ad8b528553c4882a214a702edea7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _cardsCountWindow: {fileID: 0}
-  _moveSpeed: 0
-  _index: 0
 --- !u!224 &1432946664 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 9149177547224165361, guid: 0b2e4073c3d19074aaab5fa8a7d99ba3, type: 3}

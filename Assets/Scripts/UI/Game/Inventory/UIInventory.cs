@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using GameTable;
 using TMPro;
 using UI.Game.CardPreviews;
 
