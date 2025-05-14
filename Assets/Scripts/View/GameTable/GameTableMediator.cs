@@ -1,13 +1,28 @@
-﻿using UnityEngine;
+﻿using System;
+using Controllers;
+using Services;
+using UI.Game.CardPreviews;
+using UnityEngine;
 
 namespace View.GameTable
 {
     public class GameTableMediator
     {
+        private const string CardViewSortingLayerNameDefault = "Default";
+        private const string CardViewSortingLayerNameDraggable = IDraggable.DraggableViewSortingLayerName;
+
+        public event Action OnCardDragRollback;
+
         private readonly GridManager _gridManager;
         private readonly CardViewPool _cardViewPool;
-        
+
         private bool _isConstructed;
+
+        private bool _isDragging;
+        private Vector3 _originalPosition;
+        private CardView _originalCardView;
+        private CardView _createdCardView;
+        private CardView _draggableCardView;
 
         public GameTableMediator(
             GridManager gridManager,
@@ -22,7 +37,7 @@ namespace View.GameTable
         {
             _gridManager.Construct();
             _cardViewPool.Construct();
-            
+
             _isConstructed = true;
 
             int[,] map =
@@ -49,18 +64,174 @@ namespace View.GameTable
         {
             AssertConstructed();
 
-            var placedPosition = _gridManager.PlaceOnNearestAvailablePosition(position, cardView.PlaceableReference, out var needRelocate);
+            var placedPosition = _gridManager.PlaceOnNearestAvailablePosition(
+                position,
+                cardView.PlaceableReference,
+                out var needRelocate
+            );
 
             if (placedPosition.HasValue)
             {
                 cardView.transform.SetPositionAndRotation(placedPosition.Value, Quaternion.identity);
+                // TODO: Relocate
+            }
+        }
+
+        public void HandleStartDrag(CardDragContext context)
+        {
+            _isDragging = true;
+
+            if (context.Draggable is CardView cardView)
+            {
+                _originalPosition = cardView.transform.position;
+                _originalCardView = cardView;
+                _draggableCardView = _originalCardView;
+
+                cardView.SortingGroup.sortingLayerName = CardViewSortingLayerNameDraggable;
+                cardView.transform.SetPositionAndRotation(context.WorldMousePosition, Quaternion.identity);
+            }
+            else
+            {
+                _originalPosition = Vector3.zero;
+                _originalCardView = null;
+                _draggableCardView = null;
+            }
+        }
+
+        public void HandleDrag(CardDragContext context)
+        {
+            if (!_isDragging || !_draggableCardView) return;
+
+            _draggableCardView.transform.SetPositionAndRotation(context.WorldMousePosition, Quaternion.identity);
+        }
+
+        public void HandleChangeToPreview(CardDragContext context)
+        {
+            if (!_isDragging) return;
+
+            if (_draggableCardView)
+                HideCardView(_draggableCardView);
+
+            _draggableCardView = null;
+        }
+
+
+        public void HandleChangeToView(CardDragContext context)
+        {
+            if (!_isDragging) return;
+
+            if (_originalCardView != null)
+            {
+                _draggableCardView = _originalCardView;
+            }
+            else
+            {
+                if (_createdCardView == null)
+                {
+                    if (context.Draggable is not UICardPreview preview)
+                        throw new Exception("Draggable is not UICardPreview or CardView");
+
+                    _createdCardView = _cardViewPool.GetCardView(preview.CardId, true);
+                    _createdCardView.SortingGroup.sortingLayerName = CardViewSortingLayerNameDraggable;
+                }
+
+                _draggableCardView = _createdCardView;
+            }
+
+            ShowCardView(_draggableCardView);
+            _draggableCardView.transform.SetPositionAndRotation(context.WorldMousePosition, Quaternion.identity);
+        }
+
+        public void HandleStopDrag(CardDragContext context)
+        {
+            if (!_isDragging) return;
+
+            if (_draggableCardView)
+            {
+                _draggableCardView.SortingGroup.sortingLayerName = CardViewSortingLayerNameDefault;
+                var placedPosition = _gridManager.PlaceOnNearestAvailablePosition(
+                    context.WorldMousePosition,
+                    _draggableCardView.PlaceableReference,
+                    out var needRelocate
+                );
+
+                if (!placedPosition.HasValue)
+                {
+                    OnCardDragRollback?.Invoke();
+                    return;
+                }
+
+                _draggableCardView.transform.SetPositionAndRotation(placedPosition.Value, Quaternion.identity);
+                _draggableCardView.SortingGroup.sortingLayerName = CardViewSortingLayerNameDefault;
+                ShowCardView(_draggableCardView);
+
+                _originalCardView = null;
+                _createdCardView = null;
+            }
+            else if (_originalCardView)
+            {
+                _gridManager.Release(_originalCardView.PlaceableReference);
+            }
+
+            ClearDragState();
+        }
+
+        public void HandleRollback(CardDragContext context)
+        {
+            if (!_isDragging) return;
+
+            if (_originalCardView)
+            {
+                _originalCardView.transform.SetPositionAndRotation(_originalPosition, Quaternion.identity);
+                _originalCardView.SortingGroup.sortingLayerName = CardViewSortingLayerNameDefault;
+                ShowCardView(_originalCardView);
+                _originalCardView = null;
+            }
+
+            ClearDragState();
+        }
+
+        private void ClearDragState()
+        {
+            if (_originalCardView)
+            {
+                ShowCardView(_originalCardView);
+                _cardViewPool.ReturnCardView(_originalCardView);
+            }
+
+            if (_createdCardView)
+            {
+                ShowCardView(_createdCardView);
+                _cardViewPool.ReturnCardView(_createdCardView);
+            }
+
+            _isDragging = false;
+            _originalPosition = Vector3.zero;
+            _originalCardView = null;
+            _createdCardView = null;
+            _draggableCardView = null;
+        }
+
+        private static void HideCardView(CardView cardView)
+        {
+            foreach (var renderer in cardView.GetComponentsInChildren<Renderer>())
+            {
+                renderer.enabled = false;
+            }
+        }
+
+        private static void ShowCardView(CardView cardView)
+        {
+            foreach (var renderer in cardView.GetComponentsInChildren<Renderer>())
+            {
+                renderer.enabled = true;
             }
         }
 
         public void DestructGameTable()
         {
             _isConstructed = false;
-            
+
             _cardViewPool.Destruct();
             _gridManager.Destruct();
         }
@@ -68,7 +239,7 @@ namespace View.GameTable
         private void AssertConstructed()
         {
             if (!_isConstructed)
-                throw new System.Exception("GridView is not constructed");
+                throw new Exception("GridView is not constructed");
         }
     }
 }

@@ -1,3 +1,4 @@
+using Controllers;
 using Services;
 using StateMachine.Global;
 using StateMachine.Global.States;
@@ -25,19 +26,20 @@ public class Installer : MonoInstaller
 
     private void BindMediator()
     {
-        Container.Bind<IUIGameMediator>().To<UIGameMediator>().AsSingle();
+        Container.Bind<CardDragController>().AsSingle();
+
+        Container.Bind<UIGameMediator>().AsSingle();
         Container.Bind<GameTableMediator>().AsSingle();
     }
     
     private void BindUI()
     {
-        Container.Bind<IUICardFactory>().To<UICardFactory>().AsSingle();
+        Container.Bind<UICardFactory>().AsSingle();
         Container.Bind<UIGameFactory>().AsSingle();
     }
 
     private void BindView()
     {
-        Container.Bind<CardDragController>().AsSingle();
         Container.Bind<CardViewFactory>().AsSingle();
         Container.Bind<CardViewPool>().AsSingle();
         Container.Bind<GridFactory>().AsSingle();
@@ -46,7 +48,11 @@ public class Installer : MonoInstaller
 
     private void BindServices()
     {
+        Container.Bind<PlayerInputActions>().AsSingle().NonLazy();
+        Container.Bind<DragService>().AsSingle();
+
+        // Container.Bind<InputService>().AsSingle();
+
         Container.Bind<IAssetProviderService>().To<AssetProviderService>().AsSingle();
-        Container.Bind<InputService>().FromComponentInNewPrefabResource(Constants.InputServicePath).AsSingle();
     }
 }

@@ -1,3 +1,4 @@
+using Controllers;
 using DeckManager;
 using Services;
 using StateMachine.Base;
@@ -14,23 +15,23 @@ namespace StateMachine.Global.States
         private const string SceneName = "Game Scene";
 
         private readonly StateMachineBase _stateMachine;
-        private readonly IUIGameMediator _uiGameMediator;
+        private readonly UIGameMediator _uiGameMediator;
         private readonly GameTableMediator _gameTableMediator;
-        private readonly InputService _inputService;
-        private readonly CardDragController _cardDragController;
+        private readonly DragService _dragService;
+         private readonly CardDragController _cardDragController;
 
         public MainState(
             StateMachineBase stateMachine,
-            IUIGameMediator uiGameMediator,
+            UIGameMediator uiGameMediator,
             GameTableMediator gameTableMediator,
-            InputService inputService,
+            DragService dragService,
             CardDragController cardDragController
         )
         {
             _stateMachine = stateMachine;
             _uiGameMediator = uiGameMediator;
             _gameTableMediator = gameTableMediator;
-            _inputService = inputService;
+            _dragService = dragService;
             _cardDragController = cardDragController;
         }
 
@@ -50,28 +51,92 @@ namespace StateMachine.Global.States
                 _gameTableMediator.ConstructGameTable();
                 _uiGameMediator.ConstructUI();
 
+                _dragService.Construct(Camera.main);
+
                 SceneManager.sceneLoaded -= OnSceneLoaded;
             }
         }
 
-        public void Subscribe()
+        private void Subscribe()
         {
             Application.quitting += Exit;
             SceneManager.sceneLoaded += OnSceneLoaded;
-        
-            _inputService.OnStartDrag += _cardDragController.HandleStartDrag;
-            _inputService.OnDrag += _cardDragController.HandleDrag;
-            _inputService.OnStopDrag += _cardDragController.HandleStopDrag;
+            
+            SubscribeCardDagController();
         }
 
-        public void Unsubscribe()
+        private void SubscribeCardDagController()
+        {
+            // CardDragController relations
+            // ... mouse enter on inventory
+            _uiGameMediator.OnMouseEnterInventory += _cardDragController.HandleMouseEnterInventory;
+            _uiGameMediator.OnMouseLeaveInventory += _cardDragController.HandleMouseLeaveInventory;
+            
+            // ... interceptions
+            _uiGameMediator.OnCardDragRollback += _cardDragController.HandleCardDragRollback;
+            _gameTableMediator.OnCardDragRollback += _cardDragController.HandleCardDragRollback;
+
+            // ... mouse inputs
+            _dragService.OnStartDrag += _cardDragController.HandleStartDrag;
+            _dragService.OnDrag += _cardDragController.HandleDrag;
+            _dragService.OnStopDrag += _cardDragController.HandleStopDrag;
+            
+            // ... CardDragController <-> GameTableMediator
+            _cardDragController.OnStartDrag += _gameTableMediator.HandleStartDrag;
+            _cardDragController.OnDrag += _gameTableMediator.HandleDrag;
+            _cardDragController.OnChangeToPreview += _gameTableMediator.HandleChangeToPreview;
+            _cardDragController.OnChangeToView += _gameTableMediator.HandleChangeToView;
+            _cardDragController.OnStopDrag += _gameTableMediator.HandleStopDrag;
+            _cardDragController.OnRollback += _gameTableMediator.HandleRollback;
+
+            // ... CardDragController <-> UIMediator
+            _cardDragController.OnStartDrag += _uiGameMediator.HandleStartDrag;
+            _cardDragController.OnDrag += _uiGameMediator.HandleDrag;
+            _cardDragController.OnChangeToPreview += _uiGameMediator.HandleChangeToPreview;
+            _cardDragController.OnChangeToView += _uiGameMediator.HandleChangeToView;
+            _cardDragController.OnStopDrag += _uiGameMediator.HandleStopDrag;
+            _cardDragController.OnRollback += _uiGameMediator.HandleRollback;
+        }
+
+        private void Unsubscribe()
         {
             Application.quitting -= Exit;
             SceneManager.sceneLoaded -= OnSceneLoaded;
-        
-            _inputService.OnStartDrag -= _cardDragController.HandleStartDrag;
-            _inputService.OnDrag -= _cardDragController.HandleDrag;
-            _inputService.OnStopDrag -= _cardDragController.HandleStopDrag;
+            
+            UnsubscribeCardDagController();
+        }
+
+        private void UnsubscribeCardDagController()
+        {
+            // CardDragController relations
+            // ... mouse enter on inventory
+            _uiGameMediator.OnMouseEnterInventory -= _cardDragController.HandleMouseEnterInventory;
+            _uiGameMediator.OnMouseLeaveInventory -= _cardDragController.HandleMouseLeaveInventory;
+            
+            // ... interceptions
+            _uiGameMediator.OnCardDragRollback -= _cardDragController.HandleCardDragRollback;
+            _gameTableMediator.OnCardDragRollback -= _cardDragController.HandleCardDragRollback;
+
+            // ... mouse inputs
+            _dragService.OnStartDrag -= _cardDragController.HandleStartDrag;
+            _dragService.OnDrag -= _cardDragController.HandleDrag;
+            _dragService.OnStopDrag -= _cardDragController.HandleStopDrag;
+            
+            // ... CardDragController <-> GameTableMediator
+            _cardDragController.OnStartDrag -= _gameTableMediator.HandleStartDrag;
+            _cardDragController.OnDrag -= _gameTableMediator.HandleDrag;
+            _cardDragController.OnChangeToPreview -= _gameTableMediator.HandleChangeToPreview;
+            _cardDragController.OnChangeToView -= _gameTableMediator.HandleChangeToView;
+            _cardDragController.OnStopDrag -= _gameTableMediator.HandleStopDrag;
+            _cardDragController.OnRollback -= _gameTableMediator.HandleRollback;
+
+            // ... CardDragController <-> UIMediator
+            _cardDragController.OnStartDrag -= _uiGameMediator.HandleStartDrag;
+            _cardDragController.OnDrag -= _uiGameMediator.HandleDrag;
+            _cardDragController.OnChangeToPreview -= _uiGameMediator.HandleChangeToPreview;
+            _cardDragController.OnChangeToView -= _uiGameMediator.HandleChangeToView;
+            _cardDragController.OnStopDrag -= _uiGameMediator.HandleStopDrag;
+            _cardDragController.OnRollback -= _uiGameMediator.HandleRollback;
         }
 
         public override void Exit()
@@ -83,7 +148,6 @@ namespace StateMachine.Global.States
 
         public class Factory : PlaceholderFactory<GlobalStateMachine, MainState>
         {
-
         }
     }
 }
