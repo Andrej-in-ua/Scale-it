@@ -1,4 +1,6 @@
 using Services;
+using StateMachine.Global;
+using StateMachine.Global.States;
 using UI.Game;
 using View.GameTable;
 using Zenject;

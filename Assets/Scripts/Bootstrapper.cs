@@ -1,3 +1,6 @@
+using StateMachine.Base;
+using StateMachine.Global;
+using StateMachine.Global.States;
 using UnityEngine;
 using Zenject;
 

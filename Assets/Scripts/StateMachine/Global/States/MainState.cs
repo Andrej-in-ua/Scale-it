@@ -1,0 +1,89 @@
+using DeckManager;
+using Services;
+using StateMachine.Base;
+using UI.Game;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using View.GameTable;
+using Zenject;
+
+namespace StateMachine.Global.States
+{
+    public class MainState : State
+    {
+        private const string SceneName = "Game Scene";
+
+        private readonly StateMachineBase _stateMachine;
+        private readonly IUIGameMediator _uiGameMediator;
+        private readonly GameTableMediator _gameTableMediator;
+        private readonly InputService _inputService;
+        private readonly CardDragController _cardDragController;
+
+        public MainState(
+            StateMachineBase stateMachine,
+            IUIGameMediator uiGameMediator,
+            GameTableMediator gameTableMediator,
+            InputService inputService,
+            CardDragController cardDragController
+        )
+        {
+            _stateMachine = stateMachine;
+            _uiGameMediator = uiGameMediator;
+            _gameTableMediator = gameTableMediator;
+            _inputService = inputService;
+            _cardDragController = cardDragController;
+        }
+
+        public override void Enter()
+        {
+            Debug.Log("enter main state");
+            Subscribe();
+
+            DeckLoader.LoadAsGlobal(Constants.DefaultDeckName);
+            SceneManager.LoadScene(SceneName);
+        }
+
+        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            if (scene.name == SceneName)
+            {
+                _gameTableMediator.ConstructGameTable();
+                _uiGameMediator.ConstructUI();
+
+                SceneManager.sceneLoaded -= OnSceneLoaded;
+            }
+        }
+
+        public void Subscribe()
+        {
+            Application.quitting += Exit;
+            SceneManager.sceneLoaded += OnSceneLoaded;
+        
+            _inputService.OnStartDrag += _cardDragController.HandleStartDrag;
+            _inputService.OnDrag += _cardDragController.HandleDrag;
+            _inputService.OnStopDrag += _cardDragController.HandleStopDrag;
+        }
+
+        public void Unsubscribe()
+        {
+            Application.quitting -= Exit;
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+        
+            _inputService.OnStartDrag -= _cardDragController.HandleStartDrag;
+            _inputService.OnDrag -= _cardDragController.HandleDrag;
+            _inputService.OnStopDrag -= _cardDragController.HandleStopDrag;
+        }
+
+        public override void Exit()
+        {
+            _gameTableMediator.DestructGameTable();
+            Unsubscribe();
+            Debug.Log("exit application");
+        }
+
+        public class Factory : PlaceholderFactory<GlobalStateMachine, MainState>
+        {
+
+        }
+    }
+}
