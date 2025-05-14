@@ -116,7 +116,10 @@ namespace UI.Game
         {
             if (!_isDragging || _draggableCardPreview == null) return;
 
-            _draggableCardPreview.transform.SetPositionAndRotation(context.WorldMousePosition, Quaternion.identity);
+            var position = context.WorldMousePosition;
+            position.z = 90;
+
+            _draggableCardPreview.transform.SetPositionAndRotation(position, Quaternion.identity);
         }
 
         public void HandleChangeToPreview(CardDragContext context)
@@ -132,7 +135,10 @@ namespace UI.Game
                 _draggableCardPreview = _uiCardFactory.CreateUICard(cardView.CardId, _inventoryPanel);
             }
 
-            _draggableCardPreview.transform.SetPositionAndRotation(context.WorldMousePosition, Quaternion.identity);
+            var position = context.WorldMousePosition;
+            position.z = 90;
+
+            _draggableCardPreview.transform.SetPositionAndRotation(position, Quaternion.identity);
             _draggableCardPreview.gameObject.SetActive(true);
         }
 
