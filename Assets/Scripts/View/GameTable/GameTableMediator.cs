@@ -88,7 +88,7 @@ namespace View.GameTable
                 _draggableCardView = _originalCardView;
 
                 cardView.SortingGroup.sortingLayerName = CardViewSortingLayerNameDraggable;
-                cardView.transform.SetPositionAndRotation(context.WorldMousePosition, Quaternion.identity);
+                cardView.transform.SetPositionAndRotation(NormalizeWorldPosition(context), Quaternion.identity);
             }
             else
             {
@@ -102,7 +102,7 @@ namespace View.GameTable
         {
             if (!_isDragging || !_draggableCardView) return;
 
-            _draggableCardView.transform.SetPositionAndRotation(context.WorldMousePosition, Quaternion.identity);
+            _draggableCardView.transform.SetPositionAndRotation(NormalizeWorldPosition(context), Quaternion.identity);
         }
 
         public void HandleChangeToPreview(CardDragContext context)
@@ -150,7 +150,7 @@ namespace View.GameTable
             {
                 _draggableCardView.SortingGroup.sortingLayerName = CardViewSortingLayerNameDefault;
                 var placedPosition = _gridManager.PlaceOnNearestAvailablePosition(
-                    context.WorldMousePosition,
+                    NormalizeWorldPosition(context),
                     _draggableCardView.PlaceableReference,
                     out var needRelocate
                 );
@@ -210,6 +210,13 @@ namespace View.GameTable
             _originalCardView = null;
             _createdCardView = null;
             _draggableCardView = null;
+        }
+
+        private Vector3 NormalizeWorldPosition(CardDragContext context)
+        {
+            return _originalCardView != null
+                ? context.WorldMousePosition - (Vector3)context.LocalHitPoint
+                : context.WorldMousePosition;
         }
 
         private static void HideCardView(CardView cardView)

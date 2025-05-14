@@ -16,7 +16,7 @@ namespace UI.Game
     {
         public event Action<Vector3> OnMouseEnterInventory;
         public event Action<Vector3> OnMouseLeaveInventory;
-        
+
         public event Action OnCardDragRollback;
 
         private readonly UICardFactory _uiCardFactory;
@@ -26,7 +26,7 @@ namespace UI.Game
         private UIInventory _inventory;
         private Transform _inventoryPanel;
         private Camera _camera;
-        
+
         private bool _isHoverInventory;
 
         private bool _isDragging;
@@ -37,7 +37,7 @@ namespace UI.Game
             UICardFactory uiCardFactory,
             UIGameFactory uiFactory,
             // TODO: move it to InputService
-            PlayerInputActions playerInputActions 
+            PlayerInputActions playerInputActions
         )
         {
             _uiCardFactory = uiCardFactory;
@@ -52,7 +52,7 @@ namespace UI.Game
             _camera = Camera.main;
             _inventory = _uiFactory.CreateInventory();
             _inventoryPanel = _inventory.transform.GetChild(0).transform;
-            
+
             // TODO: Move it to mediator
             _playerInputActions.Mouse.Move.performed += HandleMouseMove;
 
@@ -60,7 +60,7 @@ namespace UI.Game
             for (int i = 0; i < 10; i++)
             {
                 var card = _uiCardFactory.CreateUICard(keys[Random.Range(0, keys.Count)], _inventoryPanel);
-                
+
                 _inventory.Put(card);
             }
         }
@@ -68,14 +68,21 @@ namespace UI.Game
         public void HandleMouseMove(InputAction.CallbackContext context)
         {
             var mouseWorldPosition = _camera.ScreenToWorldPoint(context.ReadValue<Vector2>());
-            var isCurrentHoverInventory = RectTransformUtility.RectangleContainsScreenPoint(_inventory._bottomPanel, context.ReadValue<Vector2>(), _camera);;
+            mouseWorldPosition.z = 0;
+
+            var isCurrentHoverInventory = RectTransformUtility.RectangleContainsScreenPoint(
+                _inventory._bottomPanel,
+                context.ReadValue<Vector2>(),
+                _camera
+            );
 
             if (isCurrentHoverInventory && !_isHoverInventory)
             {
                 Debug.Log("Enter inventory");
                 _isHoverInventory = true;
                 OnMouseEnterInventory?.Invoke(mouseWorldPosition);
-            } else if (!isCurrentHoverInventory && _isHoverInventory)
+            }
+            else if (!isCurrentHoverInventory && _isHoverInventory)
             {
                 Debug.Log("Leave inventory");
                 _isHoverInventory = false;
@@ -108,7 +115,7 @@ namespace UI.Game
         public void HandleDrag(CardDragContext context)
         {
             if (!_isDragging || _draggableCardPreview == null) return;
-            
+
             _draggableCardPreview.transform.SetPositionAndRotation(context.WorldMousePosition, Quaternion.identity);
         }
 
@@ -119,11 +126,12 @@ namespace UI.Game
             if (_draggableCardPreview == null)
             {
                 if (context.Draggable is not CardView cardView)
-                    throw new Exception("Draggable is not CardView or UICardPreview: " + context.Draggable.GetType().Name);
+                    throw new Exception("Draggable is not CardView or UICardPreview: " +
+                                        context.Draggable.GetType().Name);
 
                 _draggableCardPreview = _uiCardFactory.CreateUICard(cardView.CardId, _inventoryPanel);
             }
-            
+
             _draggableCardPreview.transform.SetPositionAndRotation(context.WorldMousePosition, Quaternion.identity);
             _draggableCardPreview.gameObject.SetActive(true);
         }
@@ -144,21 +152,21 @@ namespace UI.Game
                 _inventory.Put(_draggableCardPreview);
                 _draggableCardPreview = null;
             }
-            
+
             ClearDragState();
         }
 
         public void HandleRollback(CardDragContext context)
         {
             if (!_isDragging) return;
-            
+
             if (_isTaken)
             {
                 _draggableCardPreview.gameObject.SetActive(true);
                 _inventory.Put(_draggableCardPreview);
                 _draggableCardPreview = null;
             }
-            
+
             ClearDragState();
         }
 
