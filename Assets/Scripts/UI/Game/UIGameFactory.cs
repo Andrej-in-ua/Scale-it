@@ -7,9 +7,9 @@ namespace UI.Game
     public class UIGameFactory
     {
         private readonly IAssetProviderService _assetProviderService;
-        private UICardFactory _uiCardFactory;
+        private IUICardFactory _uiCardFactory;
 
-        public UIGameFactory(IAssetProviderService assetProviderService, UICardFactory uiCardFactory)
+        public UIGameFactory(IAssetProviderService assetProviderService, IUICardFactory uiCardFactory)
         {
             _uiCardFactory = uiCardFactory;
             _assetProviderService = assetProviderService;
