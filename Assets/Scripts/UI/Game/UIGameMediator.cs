@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Controllers;
 using DeckManager;
+using GameTable;
 using UI.Game.CardPreviews;
 using UI.Game.Inventory;
 using UnityEngine;
@@ -66,15 +67,13 @@ namespace UI.Game
             var keys = Deck.Instance.cards.Keys.ToList().GetRange(1, 4);
             for (int i = 0; i < 10; i++)
             {
-                var card = _uiCardFactory.CreateUICard(keys[Random.Range(0, keys.Count)], _inventoryPanel);
-
-                _inventory.Put(card);
+                SpawnCard(keys[Random.Range(0, keys.Count)]);
             }
         }
         
         private void SpawnCard(int cardId)
         {
-            var card = _uiCardFactory.CreateUICard(_inventoryPanel, _inventory, cardId);
+            var card = _uiCardFactory.CreateUICard(cardId, _inventoryPanel);
             _inventory.Put(card);
         }
 

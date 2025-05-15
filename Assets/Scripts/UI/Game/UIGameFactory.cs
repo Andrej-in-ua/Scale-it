@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UI.Game
 {
-    public class UIGameFactory : IUIGameFactory
+    public class UIGameFactory
     {
         private readonly IAssetProviderService _assetProviderService;
         private UICardFactory _uiCardFactory;
