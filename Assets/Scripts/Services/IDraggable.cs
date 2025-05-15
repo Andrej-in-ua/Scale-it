@@ -4,7 +4,9 @@ namespace Services
 {
     public interface IDraggable
     {
-        public const string DraggableViewSortingLayerName= "DraggableView";
-        public const string DraggableUISortingLayerName= "DraggableUI";
+        public void OnStartDrag();
+        public void OnDrag(Vector3 mousePosition);
+
+        public void OnStopDrag(Vector3 mousePosition);
     }
 }

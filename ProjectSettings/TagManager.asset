@@ -50,12 +50,6 @@ TagManager:
   - name: GameTable
     uniqueID: 4189434665
     locked: 0
-  - name: DraggableView
-    uniqueID: 3133278639
-    locked: 0
   - name: Inventory
     uniqueID: 2387517835
-    locked: 0
-  - name: DraggableUI
-    uniqueID: 1650547503
     locked: 0

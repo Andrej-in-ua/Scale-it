@@ -1,10 +1,8 @@
-﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace GameTable
 {
-    [Obsolete]
     public class GridManager : MonoBehaviour
     {
         [SerializeField] private float _maxSearchRange = 10;
