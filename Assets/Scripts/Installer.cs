@@ -1,5 +1,9 @@
+using Controllers;
 using Services;
+using StateMachine.Global;
+using StateMachine.Global.States;
 using UI.Game;
+using View.GameTable;
 using Zenject;
 
 public class Installer : MonoInstaller
@@ -8,6 +12,7 @@ public class Installer : MonoInstaller
     {
         BindGlobalStateMachine();
         BindMediator();
+        BindUI();
         BindView();
         BindServices();
     }
@@ -21,19 +26,33 @@ public class Installer : MonoInstaller
 
     private void BindMediator()
     {
-        Container.Bind<IUIGameMediator>().To<UIGameMediator>().AsSingle();
-        Container.Bind<IUICardFactory>().To<UICardFactory>().AsSingle();
+        Container.Bind<CardDragController>().AsSingle();
+
+        Container.Bind<UIGameMediator>().AsSingle();
+        Container.Bind<GameTableMediator>().AsSingle();
+    }
+    
+    private void BindUI()
+    {
+        Container.Bind<UICardFactory>().AsSingle();
         Container.Bind<UIGameFactory>().AsSingle();
     }
 
     private void BindView()
     {
-        // Container.Bind<CardEntityFactory>().FromComponentInNewPrefabResource(Constants.ViewFactoriesPath).AsSingle();
+        Container.Bind<CardViewFactory>().AsSingle();
+        Container.Bind<CardViewPool>().AsSingle();
+        Container.Bind<GridFactory>().AsSingle();
+        Container.Bind<GridManager>().AsSingle();
     }
 
     private void BindServices()
     {
+        Container.Bind<PlayerInputActions>().AsSingle().NonLazy();
+        Container.Bind<DragService>().AsSingle();
+
+        // Container.Bind<InputService>().AsSingle();
+
         Container.Bind<IAssetProviderService>().To<AssetProviderService>().AsSingle();
-        Container.Bind<InputService>().FromComponentInNewPrefabResource(Constants.InputServicePath).AsSingle();
     }
 }
