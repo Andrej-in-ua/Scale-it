@@ -57,7 +57,7 @@ namespace UI.Game
 
             // TODO: Move it to Input service
             _cardSpawner = _uiFactory.CreateCardSpawner(_inventory.gameObject.transform);
-            
+
             _cardSpawner.OnCardSpawnRequested += SpawnCard;
 
             // TODO: Move it to mediator
