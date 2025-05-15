@@ -55,6 +55,7 @@ namespace UI.Game
             _inventory = _uiFactory.CreateInventory();
             _inventoryPanel = _inventory.transform.GetChild(0).transform;
 
+            // TODO: Move it to Input service
             _cardSpawner = _uiFactory.CreateCardSpawner(_inventory.gameObject.transform);
             if (_cardSpawner != null)
             {
