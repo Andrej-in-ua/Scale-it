@@ -2,8 +2,8 @@ using System;
 using System.Linq;
 using Controllers;
 using DeckManager;
-using GameTable;
 using UI.Game.CardPreviews;
+using UI.Game.DebugTools;
 using UI.Game.Inventory;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -57,10 +57,8 @@ namespace UI.Game
 
             // TODO: Move it to Input service
             _cardSpawner = _uiFactory.CreateCardSpawner(_inventory.gameObject.transform);
-            if (_cardSpawner != null)
-            {
-                _cardSpawner.OnCardSpawnRequested += SpawnCard;
-            }
+            
+            _cardSpawner.OnCardSpawnRequested += SpawnCard;
 
             // TODO: Move it to mediator
             _playerInputActions.Mouse.Move.performed += HandleMouseMove;
@@ -71,7 +69,7 @@ namespace UI.Game
                 SpawnCard(keys[Random.Range(0, keys.Count)]);
             }
         }
-        
+
         private void SpawnCard(int cardId)
         {
             var card = _uiCardFactory.CreateUICard(cardId, _inventoryPanel);

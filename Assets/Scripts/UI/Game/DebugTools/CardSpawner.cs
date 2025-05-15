@@ -2,7 +2,7 @@ using System;
 using TMPro;
 using UnityEngine;
 
-namespace GameTable
+namespace UI.Game.DebugTools
 {
     public class CardSpawner : MonoBehaviour
     {
