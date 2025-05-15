@@ -12,7 +12,6 @@ namespace Controllers
         public IDraggable Draggable;
         public Vector2 LocalHitPoint;
         public Vector3 WorldMousePosition;
-        public bool IsPreview;
     }
 
     public class CardDragController : IDisposable
@@ -27,20 +26,14 @@ namespace Controllers
         private IDraggable _draggable;
         private Vector2 _localHitPoint;
 
-        private bool _isPreview;
-
         public void HandleMouseEnterInventory(Vector3 mouseWorldPosition)
         {
-            _isPreview = true;
-
             if (_draggable != null)
                 OnChangeToPreview?.Invoke(CreateCardDragContext(mouseWorldPosition));
         }
 
         public void HandleMouseLeaveInventory(Vector3 mouseWorldPosition)
         {
-            _isPreview = false;
-
             if (_draggable != null)
                 OnChangeToView?.Invoke(CreateCardDragContext(mouseWorldPosition));
         }
@@ -95,8 +88,7 @@ namespace Controllers
             {
                 Draggable = _draggable,
                 LocalHitPoint = _localHitPoint,
-                WorldMousePosition = mouseWorldPosition,
-                IsPreview = _isPreview
+                WorldMousePosition = mouseWorldPosition
             };
         }
         

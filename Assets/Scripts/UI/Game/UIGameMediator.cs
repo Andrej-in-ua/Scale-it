@@ -53,7 +53,7 @@ namespace UI.Game
             _inventory = _uiFactory.CreateInventory();
             _inventoryPanel = _inventory.transform.GetChild(0).transform;
 
-            // TODO: Move it to mediator
+            // TODO: Move it to Input service
             _playerInputActions.Mouse.Move.performed += HandleMouseMove;
 
             var keys = Deck.Instance.cards.Keys.ToList().GetRange(1, 4);
