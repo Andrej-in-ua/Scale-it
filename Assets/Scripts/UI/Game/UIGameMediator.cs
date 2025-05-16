@@ -13,7 +13,7 @@ using Random = UnityEngine.Random;
 
 namespace UI.Game
 {
-    public class UIGameMediator
+    public class UIGameMediator : IDisposable
     {
         public event Action<Vector3> OnMouseEnterInventory;
         public event Action<Vector3> OnMouseLeaveInventory;
@@ -197,6 +197,15 @@ namespace UI.Game
                 Object.Destroy(_draggableCardPreview.gameObject);
                 _draggableCardPreview = null;
             }
+        }
+        
+        public void Dispose()
+        {
+            if (_playerInputActions != null)
+                _playerInputActions.Mouse.Move.performed -= HandleMouseMove;
+
+            if (_cardSpawner != null)
+                _cardSpawner.OnCardSpawnRequested -= SpawnCard;
         }
     }
 }
