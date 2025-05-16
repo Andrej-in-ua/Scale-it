@@ -142,6 +142,7 @@ namespace StateMachine.Global.States
         public override void Exit()
         {
             _gameTableMediator.DestructGameTable();
+            _uiGameMediator.Dispose();
             Unsubscribe();
             Debug.Log("exit application");
         }

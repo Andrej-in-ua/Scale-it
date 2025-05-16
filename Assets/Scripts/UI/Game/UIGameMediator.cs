@@ -3,6 +3,7 @@ using System.Linq;
 using Controllers;
 using DeckManager;
 using UI.Game.CardPreviews;
+using UI.Game.DebugTools;
 using UI.Game.Inventory;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -12,7 +13,7 @@ using Random = UnityEngine.Random;
 
 namespace UI.Game
 {
-    public class UIGameMediator
+    public class UIGameMediator : IDisposable
     {
         public event Action<Vector3> OnMouseEnterInventory;
         public event Action<Vector3> OnMouseLeaveInventory;
@@ -25,6 +26,7 @@ namespace UI.Game
 
         private UIInventory _inventory;
         private Transform _inventoryPanel;
+        private CardSpawner _cardSpawner;
         private Camera _camera;
 
         private bool _isHoverInventory;
@@ -54,15 +56,24 @@ namespace UI.Game
             _inventoryPanel = _inventory.transform.GetChild(0).transform;
 
             // TODO: Move it to Input service
+            _cardSpawner = _uiFactory.CreateCardSpawner(_inventory.gameObject.transform);
+
+            _cardSpawner.OnCardSpawnRequested += SpawnCard;
+
+            // TODO: Move it to mediator
             _playerInputActions.Mouse.Move.performed += HandleMouseMove;
 
             var keys = Deck.Instance.cards.Keys.ToList().GetRange(1, 4);
             for (int i = 0; i < 10; i++)
             {
-                var card = _uiCardFactory.CreateUICard(keys[Random.Range(0, keys.Count)], _inventoryPanel);
-
-                _inventory.Put(card);
+                SpawnCard(keys[Random.Range(0, keys.Count)]);
             }
+        }
+
+        private void SpawnCard(int cardId)
+        {
+            var card = _uiCardFactory.CreateUICard(cardId, _inventoryPanel);
+            _inventory.Put(card);
         }
 
         public void HandleMouseMove(InputAction.CallbackContext context)
@@ -186,6 +197,15 @@ namespace UI.Game
                 Object.Destroy(_draggableCardPreview.gameObject);
                 _draggableCardPreview = null;
             }
+        }
+        
+        public void Dispose()
+        {
+            if (_playerInputActions != null)
+                _playerInputActions.Mouse.Move.performed -= HandleMouseMove;
+
+            if (_cardSpawner != null)
+                _cardSpawner.OnCardSpawnRequested -= SpawnCard;
         }
     }
 }

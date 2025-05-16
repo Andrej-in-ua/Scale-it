@@ -1,4 +1,6 @@
+using GameTable;
 using Services;
+using UI.Game.DebugTools;
 using UI.Game.Inventory;
 using UnityEngine;
 
@@ -25,6 +27,16 @@ namespace UI.Game
             uiInventory.Construct();
 
             return uiInventory;
-        }  
+        }
+
+        public CardSpawner CreateCardSpawner(Transform parent)
+        {
+            var cardSpawnerPrefab = _assetProviderService.LoadAssetFromResources<GameObject>(Constants.CardSpawnerPath)
+                .gameObject;
+            
+            GameObject cardSpawnerButton = Object.Instantiate(cardSpawnerPrefab, parent);
+
+            return cardSpawnerButton.GetComponent<CardSpawner>();
+        }
     }
 }
