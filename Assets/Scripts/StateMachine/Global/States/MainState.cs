@@ -1,5 +1,6 @@
 using Controllers;
 using DeckManager;
+using Services;
 using Services.Input;
 using StateMachine.Base;
 using UI.Game;
@@ -18,6 +19,7 @@ namespace StateMachine.Global.States
         private readonly UIGameMediator _uiGameMediator;
         private readonly GameTableMediator _gameTableMediator;
         private readonly InputService _inputService;
+        private readonly CameraMover _cameraMover;
         private readonly DragService _dragService;
          private readonly CardDragController _cardDragController;
 
@@ -26,6 +28,7 @@ namespace StateMachine.Global.States
             UIGameMediator uiGameMediator,
             GameTableMediator gameTableMediator,
             InputService inputService,
+            CameraMover cameraMover,
             DragService dragService,
             CardDragController cardDragController
         )
@@ -34,6 +37,7 @@ namespace StateMachine.Global.States
             _uiGameMediator = uiGameMediator;
             _gameTableMediator = gameTableMediator;
             _inputService = inputService;
+            _cameraMover = cameraMover;
             _dragService = dragService;
             _cardDragController = cardDragController;
         }
@@ -54,7 +58,11 @@ namespace StateMachine.Global.States
                 _gameTableMediator.ConstructGameTable();
                 _uiGameMediator.ConstructUI();
 
-                _inputService.Construct(Camera.main);
+                var camera = Camera.main;
+
+                _inputService.Construct(camera);
+                _cameraMover.Construct(camera);
+
                 _dragService.Construct();
 
                 SceneManager.sceneLoaded -= OnSceneLoaded;
@@ -150,6 +158,7 @@ namespace StateMachine.Global.States
             _uiGameMediator.Dispose();
             Unsubscribe();
             
+            _cameraMover.Dispose();
             _dragService.Dispose();
             _inputService.Dispose();
 

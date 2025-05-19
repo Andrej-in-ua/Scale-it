@@ -53,6 +53,8 @@ public class Installer : MonoInstaller
         Container.Bind<InputService>().AsSingle();
         Container.Bind<DragService>().AsSingle();
 
+        Container.BindInterfacesAndSelfTo<Services.CameraMover>().AsSingle().NonLazy();
+
         Container.Bind<IAssetProviderService>().To<AssetProviderService>().AsSingle();
     }
 }
