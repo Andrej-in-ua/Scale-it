@@ -2,11 +2,11 @@ using System;
 using System.Linq;
 using Controllers;
 using DeckManager;
+using Services.Input;
 using UI.Game.CardPreviews;
 using UI.Game.DebugTools;
 using UI.Game.Inventory;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using View.GameTable;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
@@ -22,7 +22,6 @@ namespace UI.Game
 
         private readonly UICardFactory _uiCardFactory;
         private readonly UIGameFactory _uiFactory;
-        private readonly PlayerInputActions _playerInputActions;
 
         private UIInventory _inventory;
         private Transform _inventoryPanel;
@@ -37,14 +36,11 @@ namespace UI.Game
 
         public UIGameMediator(
             UICardFactory uiCardFactory,
-            UIGameFactory uiFactory,
-            // TODO: move it to InputService
-            PlayerInputActions playerInputActions
+            UIGameFactory uiFactory
         )
         {
             _uiCardFactory = uiCardFactory;
             _uiFactory = uiFactory;
-            _playerInputActions = playerInputActions;
         }
 
         public void ConstructUI()
@@ -55,13 +51,8 @@ namespace UI.Game
             _inventory = _uiFactory.CreateInventory();
             _inventoryPanel = _inventory.transform.GetChild(0).transform;
 
-            // TODO: Move it to Input service
             _cardSpawner = _uiFactory.CreateCardSpawner(_inventory.gameObject.transform);
-
             _cardSpawner.OnCardSpawnRequested += SpawnCard;
-
-            // TODO: Move it to mediator
-            _playerInputActions.Mouse.Move.performed += HandleMouseMove;
 
             var keys = Deck.Instance.cards.Keys.ToList().GetRange(1, 4);
             for (int i = 0; i < 10; i++)
@@ -76,14 +67,11 @@ namespace UI.Game
             _inventory.Put(card);
         }
 
-        public void HandleMouseMove(InputAction.CallbackContext context)
+        public void HandleMouseMove(MouseContext mouseContext)
         {
-            var mouseWorldPosition = _camera.ScreenToWorldPoint(context.ReadValue<Vector2>());
-            mouseWorldPosition.z = 0;
-
             var isCurrentHoverInventory = RectTransformUtility.RectangleContainsScreenPoint(
                 _inventory._bottomPanel,
-                context.ReadValue<Vector2>(),
+                mouseContext.GetMouseScreenPosition(),
                 _camera
             );
 
@@ -91,13 +79,13 @@ namespace UI.Game
             {
                 Debug.Log("Enter inventory");
                 _isHoverInventory = true;
-                OnMouseEnterInventory?.Invoke(mouseWorldPosition);
+                OnMouseEnterInventory?.Invoke(mouseContext.GetMouseWorldPosition());
             }
             else if (!isCurrentHoverInventory && _isHoverInventory)
             {
                 Debug.Log("Leave inventory");
                 _isHoverInventory = false;
-                OnMouseLeaveInventory?.Invoke(mouseWorldPosition);
+                OnMouseLeaveInventory?.Invoke(mouseContext.GetMouseWorldPosition());
             }
         }
 
@@ -198,12 +186,9 @@ namespace UI.Game
                 _draggableCardPreview = null;
             }
         }
-        
+
         public void Dispose()
         {
-            if (_playerInputActions != null)
-                _playerInputActions.Mouse.Move.performed -= HandleMouseMove;
-
             if (_cardSpawner != null)
                 _cardSpawner.OnCardSpawnRequested -= SpawnCard;
         }
