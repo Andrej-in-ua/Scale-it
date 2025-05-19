@@ -114,11 +114,13 @@ namespace Services
 
         public void Dispose()
         {
+            _zoomTween?.Kill();
             _zoomTween = null;
 
             if (_inputService != null)
             {
                 _inputService.OnKeyboardMoveStart -= HandleKeyboardMoveStart;
+                _inputService.OnKeyboardMoveStop -= HandleKeyboardMoveStop;
                 _inputService.OnMouseScroll -= HandleMouseScroll;
             }
         }
