@@ -241,8 +241,8 @@ namespace View.GameTable
 
         private void Enqueue(Vector2Int cell, half cost)
         {
-            // Важно: этот код всегда выполняется **на главном потоке**,
-            // поэтому прямое обращение к DynamicBuffer безопасно.
+            // Important: this code is always executed **on the main thread**,
+            // so direct access to DynamicBuffer is safe.
             var buffer = _em.GetBuffer<GridUpdate>(_queueEntity);
 
             buffer.Add(

@@ -4,7 +4,7 @@ using Unity.Mathematics;
 
 namespace ECS.Systems
 {
-     /// <summary>
+    /// <summary>
     /// Public API for reader systems.
     /// </summary>
     public static class GridService
@@ -21,7 +21,9 @@ namespace ECS.Systems
         public half Cost;
     }
 
-    public struct GridUpdateQueueTag : IComponentData { }
+    public struct GridUpdateQueueTag : IComponentData
+    {
+    }
 
     /// <summary>
     /// Infinite cost map with main‑thread batch updates (hundreds per frame are negligible).
@@ -30,9 +32,10 @@ namespace ECS.Systems
     public partial struct GridSystem : ISystem
     {
         private NativeParallelHashMap<int2, half> _costMap;
-        private Entity                             _queueSingleton;
+        private Entity _queueSingleton;
 
         #region lifecycle
+
         public void OnCreate(ref SystemState state)
         {
             _costMap = new NativeParallelHashMap<int2, half>(1024, Allocator.Persistent);
@@ -47,9 +50,11 @@ namespace ECS.Systems
             if (_costMap.IsCreated)
                 _costMap.Dispose();
         }
+
         #endregion
 
         #region update
+
         public void OnUpdate(ref SystemState state)
         {
             // Ensure previously scheduled jobs that might read the map are finished
@@ -67,6 +72,7 @@ namespace ECS.Systems
                     else
                         _costMap[u.Cell] = u.Cost;
                 }
+
                 updates.Clear();
             }
 
@@ -76,6 +82,7 @@ namespace ECS.Systems
             // No jobs scheduled → no dependency to propagate
             state.Dependency = default;
         }
+
         #endregion
     }
 }
