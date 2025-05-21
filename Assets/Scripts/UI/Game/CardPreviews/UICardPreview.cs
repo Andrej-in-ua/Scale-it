@@ -1,5 +1,5 @@
 using System;
-using Services;
+using Services.Input;
 using TMPro;
 using UnityEngine;
 
