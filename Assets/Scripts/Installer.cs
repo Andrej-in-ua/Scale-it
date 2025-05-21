@@ -1,4 +1,5 @@
 using Controllers;
+using InputActions;
 using Services;
 using Services.Input;
 using StateMachine.Global;
@@ -52,6 +53,8 @@ public class Installer : MonoInstaller
         Container.Bind<PlayerInputActions>().AsSingle().NonLazy();
         Container.Bind<InputService>().AsSingle();
         Container.Bind<DragService>().AsSingle();
+
+        Container.BindInterfacesAndSelfTo<Services.CameraMover>().AsSingle().NonLazy();
 
         Container.Bind<IAssetProviderService>().To<AssetProviderService>().AsSingle();
     }

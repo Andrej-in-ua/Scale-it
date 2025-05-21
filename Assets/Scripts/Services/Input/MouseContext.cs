@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using InputActions;
+using UnityEngine;
 
 namespace Services.Input
 {
@@ -29,6 +30,11 @@ namespace Services.Input
         public Ray GetMouseRay()
         {
             return _camera.ScreenPointToRay(GetMouseScreenPosition());
+        }
+
+        public float GetMouseScroll()
+        {
+            return Mathf.Sign(_inputActions.Mouse.Scroll.ReadValue<float>());
         }
     }
 }
