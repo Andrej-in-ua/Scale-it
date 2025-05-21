@@ -30,5 +30,10 @@ namespace Services.Input
         {
             return _camera.ScreenPointToRay(GetMouseScreenPosition());
         }
+
+        public float GetMouseScroll()
+        {
+            return Mathf.Sign(_inputActions.Mouse.Scroll.ReadValue<float>());
+        }
     }
 }
