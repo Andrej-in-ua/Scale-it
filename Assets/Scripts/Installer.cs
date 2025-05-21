@@ -1,5 +1,7 @@
 using Controllers;
+using InputActions;
 using Services;
+using Services.Input;
 using StateMachine.Global;
 using StateMachine.Global.States;
 using UI.Game;
@@ -31,7 +33,7 @@ public class Installer : MonoInstaller
         Container.Bind<UIGameMediator>().AsSingle();
         Container.Bind<GameTableMediator>().AsSingle();
     }
-    
+
     private void BindUI()
     {
         Container.Bind<UICardFactory>().AsSingle();
@@ -49,9 +51,10 @@ public class Installer : MonoInstaller
     private void BindServices()
     {
         Container.Bind<PlayerInputActions>().AsSingle().NonLazy();
+        Container.Bind<InputService>().AsSingle();
         Container.Bind<DragService>().AsSingle();
 
-        // Container.Bind<InputService>().AsSingle();
+        Container.BindInterfacesAndSelfTo<Services.CameraMover>().AsSingle().NonLazy();
 
         Container.Bind<IAssetProviderService>().To<AssetProviderService>().AsSingle();
     }

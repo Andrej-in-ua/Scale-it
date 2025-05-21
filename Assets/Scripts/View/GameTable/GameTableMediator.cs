@@ -1,6 +1,6 @@
 ﻿using System;
 using Controllers;
-using Services;
+using Services.Input;
 using UI.Game.CardPreviews;
 using UnityEngine;
 
