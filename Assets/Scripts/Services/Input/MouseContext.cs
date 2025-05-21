@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using InputActions;
+using UnityEngine;
 
 namespace Services.Input
 {

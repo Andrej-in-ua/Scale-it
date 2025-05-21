@@ -1,4 +1,5 @@
 using Controllers;
+using InputActions;
 using Services;
 using Services.Input;
 using StateMachine.Global;
