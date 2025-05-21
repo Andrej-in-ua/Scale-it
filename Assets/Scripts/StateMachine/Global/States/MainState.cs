@@ -1,7 +1,6 @@
 using Controllers;
 using DeckManager;
 using Services;
-using Services.Input;
 using StateMachine.Base;
 using UI.Game;
 using UnityEngine;
@@ -18,8 +17,6 @@ namespace StateMachine.Global.States
         private readonly StateMachineBase _stateMachine;
         private readonly UIGameMediator _uiGameMediator;
         private readonly GameTableMediator _gameTableMediator;
-        private readonly InputService _inputService;
-        private readonly CameraMover _cameraMover;
         private readonly DragService _dragService;
          private readonly CardDragController _cardDragController;
 
@@ -27,8 +24,6 @@ namespace StateMachine.Global.States
             StateMachineBase stateMachine,
             UIGameMediator uiGameMediator,
             GameTableMediator gameTableMediator,
-            InputService inputService,
-            CameraMover cameraMover,
             DragService dragService,
             CardDragController cardDragController
         )
@@ -36,8 +31,6 @@ namespace StateMachine.Global.States
             _stateMachine = stateMachine;
             _uiGameMediator = uiGameMediator;
             _gameTableMediator = gameTableMediator;
-            _inputService = inputService;
-            _cameraMover = cameraMover;
             _dragService = dragService;
             _cardDragController = cardDragController;
         }
@@ -58,12 +51,7 @@ namespace StateMachine.Global.States
                 _gameTableMediator.ConstructGameTable();
                 _uiGameMediator.ConstructUI();
 
-                var camera = Camera.main;
-
-                _inputService.Construct(camera);
-                _cameraMover.Construct(camera);
-
-                _dragService.Construct();
+                _dragService.Construct(Camera.main);
 
                 SceneManager.sceneLoaded -= OnSceneLoaded;
             }
@@ -74,14 +62,13 @@ namespace StateMachine.Global.States
             Application.quitting += Exit;
             SceneManager.sceneLoaded += OnSceneLoaded;
             
-            SubscribeCardDragController();
+            SubscribeCardDagController();
         }
 
-        private void SubscribeCardDragController()
+        private void SubscribeCardDagController()
         {
             // CardDragController relations
             // ... mouse enter on inventory
-            _inputService.OnMouseMove += _uiGameMediator.HandleMouseMove;
             _uiGameMediator.OnMouseEnterInventory += _cardDragController.HandleMouseEnterInventory;
             _uiGameMediator.OnMouseLeaveInventory += _cardDragController.HandleMouseLeaveInventory;
             
@@ -157,11 +144,6 @@ namespace StateMachine.Global.States
             _gameTableMediator.DestructGameTable();
             _uiGameMediator.Dispose();
             Unsubscribe();
-            
-            _cameraMover.Dispose();
-            _dragService.Dispose();
-            _inputService.Dispose();
-
             Debug.Log("exit application");
         }
 

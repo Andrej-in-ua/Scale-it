@@ -14,17 +14,4 @@ public class Constants
 
     // Game Data
     public const string DefaultDeckName = "default";
-    
-    public class CameraSettings
-    {
-        public const float MoveMinSpeed = 32f;
-        public const float MoveMaxSpeed = 512f;
-        public const float MoveAccelerationDuration = 0.2f;
-        public const float MoveDecelerationDuration = 0.1f;
-
-        public const float ZoomDuration = 0.4f;
-        public const float ZoomStep = 8f;
-        public const float ZoomMin = 16f;
-        public const float ZoomMax = 128f;
-    }
 }
