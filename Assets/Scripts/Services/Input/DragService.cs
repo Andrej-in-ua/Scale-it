@@ -37,7 +37,8 @@ namespace Services.Input
             foreach (var hit in hits)
             {
                 IDraggable draggable = hit.collider?.GetComponent<IDraggable>();
-                // Debug.Log("Dragger hit: " + draggable + " / " + hit.point + " / " + hit.distance);
+                
+                
                 if (draggable != null)
                     _draggables.Add((draggable, hit.point - (Vector2)hit.transform.position));
             }

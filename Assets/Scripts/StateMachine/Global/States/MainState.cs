@@ -21,7 +21,8 @@ namespace StateMachine.Global.States
         private readonly InputService _inputService;
         private readonly CameraMover _cameraMover;
         private readonly DragService _dragService;
-         private readonly CardDragController _cardDragController;
+        private readonly CardDragController _cardDragController;
+        private readonly PortDrawController _portDrawController;
 
         public MainState(
             StateMachineBase stateMachine,
@@ -30,7 +31,8 @@ namespace StateMachine.Global.States
             InputService inputService,
             CameraMover cameraMover,
             DragService dragService,
-            CardDragController cardDragController
+            CardDragController cardDragController,
+            PortDrawController portDrawController
         )
         {
             _stateMachine = stateMachine;
@@ -40,6 +42,7 @@ namespace StateMachine.Global.States
             _cameraMover = cameraMover;
             _dragService = dragService;
             _cardDragController = cardDragController;
+            _portDrawController = portDrawController;
         }
 
         public override void Enter()
@@ -90,10 +93,12 @@ namespace StateMachine.Global.States
             _gameTableMediator.OnCardDragRollback += _cardDragController.HandleCardDragRollback;
 
             // ... mouse inputs
+            _dragService.OnStartDrag += _portDrawController.HandleStartDraw;
+            
             _dragService.OnStartDrag += _cardDragController.HandleStartDrag;
             _dragService.OnDrag += _cardDragController.HandleDrag;
             _dragService.OnStopDrag += _cardDragController.HandleStopDrag;
-            
+
             // ... CardDragController <-> GameTableMediator
             _cardDragController.OnStartDrag += _gameTableMediator.HandleStartDrag;
             _cardDragController.OnDrag += _gameTableMediator.HandleDrag;
@@ -134,6 +139,8 @@ namespace StateMachine.Global.States
             _dragService.OnStartDrag -= _cardDragController.HandleStartDrag;
             _dragService.OnDrag -= _cardDragController.HandleDrag;
             _dragService.OnStopDrag -= _cardDragController.HandleStopDrag;
+            
+            _dragService.OnStartDrag -= _portDrawController.HandleStartDraw;
             
             // ... CardDragController <-> GameTableMediator
             _cardDragController.OnStartDrag -= _gameTableMediator.HandleStartDrag;
