@@ -2,6 +2,7 @@
 using Controllers;
 using Services.Input;
 using UI.Game.CardPreviews;
+using Unity.Entities;
 using UnityEngine;
 
 namespace View.GameTable
@@ -35,7 +36,7 @@ namespace View.GameTable
 
         public void ConstructGameTable()
         {
-            _gridManager.Construct();
+            _gridManager.Construct(World.DefaultGameObjectInjectionWorld.EntityManager);
             _cardViewPool.Construct();
 
             _isConstructed = true;
