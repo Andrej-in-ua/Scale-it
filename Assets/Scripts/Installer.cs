@@ -47,6 +47,7 @@ public class Installer : MonoInstaller
         Container.Bind<CardViewPool>().AsSingle();
         Container.Bind<GridFactory>().AsSingle();
         Container.Bind<GridManager>().AsSingle();
+        Container.Bind<ConnectionFactory>().AsSingle();
     }
 
     private void BindServices()

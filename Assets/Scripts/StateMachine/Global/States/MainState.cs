@@ -94,6 +94,7 @@ namespace StateMachine.Global.States
 
             // ... mouse inputs
             _dragService.OnStartDrag += _portDrawController.HandleStartDraw;
+            _dragService.OnStopDrag += _portDrawController.HandleStopDraw;
             
             _dragService.OnStartDrag += _cardDragController.HandleStartDrag;
             _dragService.OnDrag += _cardDragController.HandleDrag;
@@ -106,6 +107,9 @@ namespace StateMachine.Global.States
             _cardDragController.OnChangeToView += _gameTableMediator.HandleChangeToView;
             _cardDragController.OnStopDrag += _gameTableMediator.HandleStopDrag;
             _cardDragController.OnRollback += _gameTableMediator.HandleRollback;
+
+            _portDrawController.OnStartDraw += _gameTableMediator.HandleStartDraw;
+            _portDrawController.OnStopDraw += _gameTableMediator.HandleStopDraw;
 
             // ... CardDragController <-> UIMediator
             _cardDragController.OnStartDrag += _uiGameMediator.HandleStartDrag;
@@ -141,6 +145,7 @@ namespace StateMachine.Global.States
             _dragService.OnStopDrag -= _cardDragController.HandleStopDrag;
             
             _dragService.OnStartDrag -= _portDrawController.HandleStartDraw;
+            _dragService.OnStopDrag -= _portDrawController.HandleStopDraw;
             
             // ... CardDragController <-> GameTableMediator
             _cardDragController.OnStartDrag -= _gameTableMediator.HandleStartDrag;
@@ -149,6 +154,9 @@ namespace StateMachine.Global.States
             _cardDragController.OnChangeToView -= _gameTableMediator.HandleChangeToView;
             _cardDragController.OnStopDrag -= _gameTableMediator.HandleStopDrag;
             _cardDragController.OnRollback -= _gameTableMediator.HandleRollback;
+            
+            _portDrawController.OnStartDraw -= _gameTableMediator.HandleStartDraw;
+            _portDrawController.OnStopDraw -= _gameTableMediator.HandleStopDraw;
 
             // ... CardDragController <-> UIMediator
             _cardDragController.OnStartDrag -= _uiGameMediator.HandleStartDrag;
