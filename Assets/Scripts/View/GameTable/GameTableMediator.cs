@@ -16,6 +16,7 @@ namespace View.GameTable
 
         private readonly GridManager _gridManager;
         private readonly CardViewPool _cardViewPool;
+        private readonly ConnectionFactory _connectionFactory;
 
         private bool _isConstructed;
 
@@ -25,19 +26,24 @@ namespace View.GameTable
         private CardView _createdCardView;
         private CardView _draggableCardView;
 
+        private Transform _connectionManager;
+
         public GameTableMediator(
             GridManager gridManager,
-            CardViewPool cardViewPool
+            CardViewPool cardViewPool,
+            ConnectionFactory connectionFactory
         )
         {
             _gridManager = gridManager;
             _cardViewPool = cardViewPool;
+            _connectionFactory = connectionFactory;
         }
 
         public void ConstructGameTable()
         {
             _gridManager.Construct(World.DefaultGameObjectInjectionWorld.EntityManager);
             _cardViewPool.Construct();
+            _connectionManager = _connectionFactory.ConnectionManager();
 
             _isConstructed = true;
 
@@ -76,6 +82,21 @@ namespace View.GameTable
                 cardView.transform.SetPositionAndRotation(placedPosition.Value, Quaternion.identity);
                 // TODO: Relocate
             }
+        }
+
+        public void HandleStartDraw(PortDrawContext portDrawContext)
+        {
+            _connectionFactory.CreateConnectionView(_connectionManager);
+        }
+
+        public void HandleDraw(PortDrawContext portDrawContext)
+        {
+            // pathfinding
+        }
+        
+        public void HandleStopDraw(PortDrawContext portDrawContext)
+        {
+            // pathfinding
         }
 
         public void HandleStartDrag(CardDragContext context)

@@ -37,6 +37,11 @@ namespace Controllers
 
             foreach (var (draggable, localHitPoint) in context.Draggables)
             {
+                if (draggable is PortView) return;
+            }
+            
+            foreach (var (draggable, localHitPoint) in context.Draggables)
+            {
                 if (draggable is CardView or UICardPreview)
                 {
                     _draggable = draggable;
