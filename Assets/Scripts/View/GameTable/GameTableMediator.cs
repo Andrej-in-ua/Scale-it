@@ -25,6 +25,8 @@ namespace View.GameTable
         private CardView _createdCardView;
         private CardView _draggableCardView;
 
+        private Transform _connectionManager;
+
         public GameTableMediator(
             GridManager gridManager,
             CardViewPool cardViewPool,
@@ -40,6 +42,7 @@ namespace View.GameTable
         {
             _gridManager.Construct();
             _cardViewPool.Construct();
+            _connectionManager = _connectionFactory.ConnectionManager();
 
             _isConstructed = true;
 
@@ -82,12 +85,17 @@ namespace View.GameTable
 
         public void HandleStartDraw(PortDrawContext portDrawContext)
         {
-            _connectionFactory.CreateConnectionView();
+            _connectionFactory.CreateConnectionView(_connectionManager);
+        }
+
+        public void HandleDraw(PortDrawContext portDrawContext)
+        {
+            // pathfinding
         }
         
         public void HandleStopDraw(PortDrawContext portDrawContext)
         {
-            Debug.Log("-ok");
+            // pathfinding
         }
 
         public void HandleStartDrag(CardDragContext context)

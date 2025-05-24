@@ -8,9 +8,7 @@ namespace Controllers
     public class PortDrawController : IDisposable
     {
         public event Action<PortDrawContext> OnStartDraw;
-
-        //public event Action<PortDrawContext> OnDraw;
-        
+        public event Action<PortDrawContext> OnDraw;
         public event Action<PortDrawContext> OnStopDraw;
 
         private IDraggable _draggable;
@@ -24,7 +22,6 @@ namespace Controllers
             {
                 if (draggable is PortView)
                 {
-                    Debug.Log("port");
                     _draggable = draggable;
                     _localHitPoint = localHitPoint;
 
@@ -32,6 +29,13 @@ namespace Controllers
                     return;
                 }
             }
+        }
+
+        public void HandleDraw(DragContext context)
+        {
+            if (_draggable == null) return;
+
+            OnDraw?.Invoke(CreatePortDrawContext(context.MouseWorldPosition));
         }
         
         public void HandleStopDraw(DragContext context)

@@ -94,6 +94,7 @@ namespace StateMachine.Global.States
 
             // ... mouse inputs
             _dragService.OnStartDrag += _portDrawController.HandleStartDraw;
+            _dragService.OnDrag += _portDrawController.HandleDraw;
             _dragService.OnStopDrag += _portDrawController.HandleStopDraw;
             
             _dragService.OnStartDrag += _cardDragController.HandleStartDrag;
@@ -109,6 +110,7 @@ namespace StateMachine.Global.States
             _cardDragController.OnRollback += _gameTableMediator.HandleRollback;
 
             _portDrawController.OnStartDraw += _gameTableMediator.HandleStartDraw;
+            _portDrawController.OnDraw += _gameTableMediator.HandleDraw;
             _portDrawController.OnStopDraw += _gameTableMediator.HandleStopDraw;
 
             // ... CardDragController <-> UIMediator
@@ -145,6 +147,7 @@ namespace StateMachine.Global.States
             _dragService.OnStopDrag -= _cardDragController.HandleStopDrag;
             
             _dragService.OnStartDrag -= _portDrawController.HandleStartDraw;
+            _dragService.OnDrag -= _portDrawController.HandleDraw;
             _dragService.OnStopDrag -= _portDrawController.HandleStopDraw;
             
             // ... CardDragController <-> GameTableMediator
@@ -156,6 +159,7 @@ namespace StateMachine.Global.States
             _cardDragController.OnRollback -= _gameTableMediator.HandleRollback;
             
             _portDrawController.OnStartDraw -= _gameTableMediator.HandleStartDraw;
+            _portDrawController.OnDraw -= _gameTableMediator.HandleDraw;
             _portDrawController.OnStopDraw -= _gameTableMediator.HandleStopDraw;
 
             // ... CardDragController <-> UIMediator

@@ -5,6 +5,6 @@ namespace View.GameTable
 {
     public class PortView : MonoBehaviour, IDraggable
     {
-
+        public GameObject Connection;
     }
 }

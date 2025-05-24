@@ -10,6 +10,7 @@ public class Constants
     public const string GridPath = "GameTable/GridPrefab";
     
     public const string ConnectionViewPath = "GameTable/ConnectionViewPrefab";
+    public const string ConnectionManagerPath = "GameTable/ConnectionManagerPrefab";
 
     // Services
     public const string InputServicePath = "InputService";

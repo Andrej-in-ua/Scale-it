@@ -44,8 +44,6 @@ namespace Controllers
             {
                 if (draggable is CardView or UICardPreview)
                 {
-                    Debug.Log("card");
-
                     _draggable = draggable;
                     _localHitPoint = localHitPoint;
 
