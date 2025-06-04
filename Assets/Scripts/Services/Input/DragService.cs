@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using ECS.Components;
+using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
+using View.GameTable;
 
 namespace Services.Input
 {
@@ -11,12 +15,16 @@ namespace Services.Input
         public event Action<DragContext> OnStopDrag;
 
         private readonly InputService _inputService;
+        private readonly GridManager _gridManager;
 
         private List<(IDraggable, Vector2)> _draggables;
+        
+        private Vector3 _dragStartPosition;
 
-        public DragService(InputService inputService)
+        public DragService(InputService inputService, GridManager gridManager)
         {
             _inputService = inputService;
+            _gridManager = gridManager;
         }
 
         public void Construct()
@@ -41,6 +49,8 @@ namespace Services.Input
                 if (draggable != null)
                     _draggables.Add((draggable, hit.point - (Vector2)hit.transform.position));
             }
+            
+            _dragStartPosition = new Vector2(mouseContext.GetMouseWorldPosition().x, mouseContext.GetMouseWorldPosition().y);
 
             OnStartDrag.Invoke(CreateDragContext(mouseContext));
         }
@@ -48,6 +58,20 @@ namespace Services.Input
         private void HandleMouseMove(MouseContext mouseContext)
         {
             if (_draggables == null || OnDrag == null) return;
+            
+            //Example of pathfinder request
+            var startCellPosition = _gridManager.WorldToCell(_dragStartPosition);
+            var endCellPosition = _gridManager.WorldToCell(new Vector2(mouseContext.GetMouseWorldPosition().x, mouseContext.GetMouseWorldPosition().y));
+            
+            var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+            var entity = entityManager.CreateEntity();
+            entityManager.AddComponentData(entity, new PathRequest
+            {
+                Start = new int2(startCellPosition.x, startCellPosition.y),
+                End = new int2(endCellPosition.x, endCellPosition.y)
+            });
+            entityManager.AddBuffer<PathResult>(entity);
+            //
 
             OnDrag.Invoke(CreateDragContext(mouseContext));
         }

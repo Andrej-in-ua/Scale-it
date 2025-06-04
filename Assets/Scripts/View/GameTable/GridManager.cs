@@ -253,6 +253,12 @@ namespace View.GameTable
                 }
             );
         }
+        
+        public Vector2Int WorldToCell(Vector3 worldPosition)
+        {
+            AssertConstructed();
+            return (Vector2Int)_grid.WorldToCell(worldPosition);
+        }
 
         public Vector2Int WorldToCell(Vector3 worldPosition, PlaceableReference reference)
         {
