@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Services.Input
 {
     public record DragContext
     {
-        public List<(IDraggable, Vector2)> Draggables;
+        public (IDraggable, Vector2)? Draggable;
         public Vector3 MouseWorldPosition;
     }
 }

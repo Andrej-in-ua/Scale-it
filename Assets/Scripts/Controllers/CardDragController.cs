@@ -1,7 +1,6 @@
 ﻿using System;
 using Services.Input;
 using UI.Game.CardPreviews;
-
 using UnityEngine;
 using View.GameTable;
 
@@ -18,6 +17,7 @@ namespace Controllers
 
         private IDraggable _draggable;
         private Vector2 _localHitPoint;
+        private int _priority = 1;
 
         public void HandleMouseEnterInventory(Vector3 mouseWorldPosition)
         {
@@ -33,33 +33,26 @@ namespace Controllers
 
         public void HandleStartDrag(DragContext context)
         {
-            if (_draggable != null || OnStartDrag == null) return;
+            if (_draggable != null || OnStartDrag == null)
+                return;
 
-            foreach (var (draggable, localHitPoint) in context.Draggables)
-            {
-                if (draggable is PortView) return;
-            }
-            
-            foreach (var (draggable, localHitPoint) in context.Draggables)
-            {
-                if (draggable is CardView or UICardPreview)
-                {
-                    _draggable = draggable;
-                    _localHitPoint = localHitPoint;
+            var (draggable, localHitPoint) = context.Draggable.Value;
 
-                    OnStartDrag.Invoke(CreateCardDragContext(context.MouseWorldPosition));
-                    return;
-                }
-            }
+            if (draggable.Priority != _priority)
+                return;
+
+            _draggable = draggable;
+            _localHitPoint = localHitPoint;
+
+            OnStartDrag.Invoke(CreateCardDragContext(context.MouseWorldPosition));
         }
 
         public void HandleDrag(DragContext context)
         {
             if (_draggable == null) return;
-            
             OnDrag?.Invoke(CreateCardDragContext(context.MouseWorldPosition));
         }
-        
+
         public void HandleStopDrag(DragContext context)
         {
             if (_draggable == null) return;
@@ -69,13 +62,13 @@ namespace Controllers
             _draggable = null;
             _localHitPoint = Vector2.zero;
         }
-        
+
         public void HandleCardDragRollback()
         {
             if (_draggable == null) return;
 
             OnRollback?.Invoke(CreateCardDragContext(Vector3.zero));
-            
+
             _draggable = null;
             _localHitPoint = Vector2.zero;
         }
@@ -89,7 +82,7 @@ namespace Controllers
                 WorldMousePosition = mouseWorldPosition
             };
         }
-        
+
         public void Dispose()
         {
             _draggable = null;

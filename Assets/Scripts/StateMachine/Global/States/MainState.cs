@@ -22,7 +22,6 @@ namespace StateMachine.Global.States
         private readonly CameraMover _cameraMover;
         private readonly DragService _dragService;
         private readonly CardDragController _cardDragController;
-        private readonly PortDrawController _portDrawController;
 
         public MainState(
             StateMachineBase stateMachine,
@@ -31,8 +30,7 @@ namespace StateMachine.Global.States
             InputService inputService,
             CameraMover cameraMover,
             DragService dragService,
-            CardDragController cardDragController,
-            PortDrawController portDrawController
+            CardDragController cardDragController
         )
         {
             _stateMachine = stateMachine;
@@ -42,7 +40,6 @@ namespace StateMachine.Global.States
             _cameraMover = cameraMover;
             _dragService = dragService;
             _cardDragController = cardDragController;
-            _portDrawController = portDrawController;
         }
 
         public override void Enter()
@@ -78,8 +75,23 @@ namespace StateMachine.Global.States
             SceneManager.sceneLoaded += OnSceneLoaded;
             
             SubscribeCardDragController();
+            SubscribeConnectionDrawing();
         }
 
+        private void SubscribeConnectionDrawing()
+        {
+            _dragService.OnStartDrag += _gameTableMediator.HandleStartDraw;
+            _dragService.OnDrag += _gameTableMediator.HandleDraw;
+            _dragService.OnStopDrag += _gameTableMediator.HandleStopDraw;
+        } 
+        
+        private void UnsubscribeConnectionDrawing()
+        {
+            _dragService.OnStartDrag -= _gameTableMediator.HandleStartDraw;
+            _dragService.OnDrag -= _gameTableMediator.HandleDraw;
+            _dragService.OnStopDrag -= _gameTableMediator.HandleStopDraw;
+        }
+        
         private void SubscribeCardDragController()
         {
             // CardDragController relations
@@ -93,9 +105,6 @@ namespace StateMachine.Global.States
             _gameTableMediator.OnCardDragRollback += _cardDragController.HandleCardDragRollback;
 
             // ... mouse inputs
-            _dragService.OnStartDrag += _portDrawController.HandleStartDraw;
-            _dragService.OnDrag += _portDrawController.HandleDraw;
-            _dragService.OnStopDrag += _portDrawController.HandleStopDraw;
             
             _dragService.OnStartDrag += _cardDragController.HandleStartDrag;
             _dragService.OnDrag += _cardDragController.HandleDrag;
@@ -108,10 +117,6 @@ namespace StateMachine.Global.States
             _cardDragController.OnChangeToView += _gameTableMediator.HandleChangeToView;
             _cardDragController.OnStopDrag += _gameTableMediator.HandleStopDrag;
             _cardDragController.OnRollback += _gameTableMediator.HandleRollback;
-
-            _portDrawController.OnStartDraw += _gameTableMediator.HandleStartDraw;
-            _portDrawController.OnDraw += _gameTableMediator.HandleDraw;
-            _portDrawController.OnStopDraw += _gameTableMediator.HandleStopDraw;
 
             // ... CardDragController <-> UIMediator
             _cardDragController.OnStartDrag += _uiGameMediator.HandleStartDrag;
@@ -128,6 +133,7 @@ namespace StateMachine.Global.States
             SceneManager.sceneLoaded -= OnSceneLoaded;
             
             UnsubscribeCardDagController();
+            UnsubscribeConnectionDrawing();
         }
 
         private void UnsubscribeCardDagController()
@@ -146,10 +152,6 @@ namespace StateMachine.Global.States
             _dragService.OnDrag -= _cardDragController.HandleDrag;
             _dragService.OnStopDrag -= _cardDragController.HandleStopDrag;
             
-            _dragService.OnStartDrag -= _portDrawController.HandleStartDraw;
-            _dragService.OnDrag -= _portDrawController.HandleDraw;
-            _dragService.OnStopDrag -= _portDrawController.HandleStopDraw;
-            
             // ... CardDragController <-> GameTableMediator
             _cardDragController.OnStartDrag -= _gameTableMediator.HandleStartDrag;
             _cardDragController.OnDrag -= _gameTableMediator.HandleDrag;
@@ -157,10 +159,6 @@ namespace StateMachine.Global.States
             _cardDragController.OnChangeToView -= _gameTableMediator.HandleChangeToView;
             _cardDragController.OnStopDrag -= _gameTableMediator.HandleStopDrag;
             _cardDragController.OnRollback -= _gameTableMediator.HandleRollback;
-            
-            _portDrawController.OnStartDraw -= _gameTableMediator.HandleStartDraw;
-            _portDrawController.OnDraw -= _gameTableMediator.HandleDraw;
-            _portDrawController.OnStopDraw -= _gameTableMediator.HandleStopDraw;
 
             // ... CardDragController <-> UIMediator
             _cardDragController.OnStartDrag -= _uiGameMediator.HandleStartDrag;

@@ -20,12 +20,12 @@ namespace View.GameTable
             return connectionGameObject.transform;
         }
 
-        public Transform ConnectionManager()
+        public Transform CreateConnectionsContainer()
         {
-            var objectPrefab = _assetProviderService.LoadAssetFromResources<GameObject>(Constants.ConnectionManagerPath);
-            var connectionManager = Object.Instantiate(objectPrefab);
+            var objectPrefab = _assetProviderService.LoadAssetFromResources<GameObject>(Constants.ConnectionsContainerPath);
+            var connectionsContainer = Object.Instantiate(objectPrefab);
             
-            return connectionManager.transform;
+            return connectionsContainer.transform;
         }
     }
 }

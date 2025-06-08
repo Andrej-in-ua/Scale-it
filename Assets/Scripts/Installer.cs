@@ -29,8 +29,6 @@ public class Installer : MonoInstaller
     private void BindMediator()
     {
         Container.Bind<CardDragController>().AsSingle();
-        Container.Bind<PortDrawController>().AsSingle();
-
         Container.Bind<UIGameMediator>().AsSingle();
         Container.Bind<GameTableMediator>().AsSingle();
     }

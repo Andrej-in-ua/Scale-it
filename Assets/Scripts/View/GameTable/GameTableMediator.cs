@@ -24,8 +24,11 @@ namespace View.GameTable
         private CardView _originalCardView;
         private CardView _createdCardView;
         private CardView _draggableCardView;
+        
+        private IDraggable _draggablePort;
+        private int _portPriority = 2;
 
-        private Transform _connectionManager;
+        private Transform _connectionsContainer;
 
         public GameTableMediator(
             GridManager gridManager,
@@ -42,7 +45,7 @@ namespace View.GameTable
         {
             _gridManager.Construct();
             _cardViewPool.Construct();
-            _connectionManager = _connectionFactory.ConnectionManager();
+            _connectionsContainer = _connectionFactory.CreateConnectionsContainer();
 
             _isConstructed = true;
 
@@ -83,21 +86,33 @@ namespace View.GameTable
             }
         }
 
-        public void HandleStartDraw(PortDrawContext portDrawContext)
+        public void HandleStartDraw(DragContext context)
         {
-            _connectionFactory.CreateConnectionView(_connectionManager);
+            if (_draggablePort != null)
+                return;
+
+            IDraggable draggable = context.Draggable.Value.Item1;
+
+            if (draggable.Priority != _portPriority)
+                return;
+            
+            _connectionFactory.CreateConnectionView(_connectionsContainer);
+
+            _draggablePort = draggable;
         }
 
-        public void HandleDraw(PortDrawContext portDrawContext)
+        public void HandleDraw(DragContext context)
         {
+            if (_draggablePort == null) return;
             // pathfinding
         }
         
-        public void HandleStopDraw(PortDrawContext portDrawContext)
+        public void HandleStopDraw(DragContext context)
         {
+            _draggablePort = null;
             // pathfinding
         }
-
+        
         public void HandleStartDrag(CardDragContext context)
         {
             _isDragging = true;

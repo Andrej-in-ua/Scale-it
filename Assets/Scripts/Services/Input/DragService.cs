@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Services.Input
@@ -12,7 +11,7 @@ namespace Services.Input
 
         private readonly InputService _inputService;
 
-        private List<(IDraggable, Vector2)> _draggables;
+        private (IDraggable element, Vector2 dragOffset)? _draggable;
 
         public DragService(InputService inputService)
         {
@@ -28,9 +27,8 @@ namespace Services.Input
 
         private void HandleMouseLeftDown(MouseContext mouseContext)
         {
-            if (_draggables != null || OnStartDrag == null) return;
+            if (_draggable != null || OnStartDrag == null) return;
 
-            _draggables = new List<(IDraggable, Vector2)>();
             // ReSharper disable once Unity.PreferNonAllocApi
             var hits = Physics2D.GetRayIntersectionAll(mouseContext.GetMouseRay(), Mathf.Infinity);
 
@@ -38,34 +36,38 @@ namespace Services.Input
             {
                 IDraggable draggable = hit.collider?.GetComponent<IDraggable>();
                 
-                
-                if (draggable != null)
-                    _draggables.Add((draggable, hit.point - (Vector2)hit.transform.position));
+                if (draggable == null) continue;
+
+                Vector3 offset = hit.point - (Vector2)hit.transform.position;
+
+                if (_draggable == null || draggable.Priority > _draggable.Value.element.Priority)
+                    _draggable = (draggable, offset);
             }
 
-            OnStartDrag.Invoke(CreateDragContext(mouseContext));
+            if (_draggable != null)
+                OnStartDrag.Invoke(CreateDragContext(mouseContext));
         }
 
         private void HandleMouseMove(MouseContext mouseContext)
         {
-            if (_draggables == null || OnDrag == null) return;
+            if (_draggable == null || OnDrag == null) return;
 
             OnDrag.Invoke(CreateDragContext(mouseContext));
         }
 
         private void HandleMouseLeftUp(MouseContext mouseContext)
         {
-            if (_draggables == null || OnStopDrag == null) return;
+            if (_draggable == null || OnStopDrag == null) return;
 
             OnStopDrag.Invoke(CreateDragContext(mouseContext));
-            _draggables = null;
+            _draggable = null;
         }
 
         private DragContext CreateDragContext(MouseContext mouseContext)
         {
             return new DragContext
             {
-                Draggables = _draggables,
+                Draggable = _draggable,
                 MouseWorldPosition = mouseContext.GetMouseWorldPosition()
             };
         }
