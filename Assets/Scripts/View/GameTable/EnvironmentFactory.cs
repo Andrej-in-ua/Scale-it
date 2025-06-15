@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Services;
 using UnityEngine;
 
@@ -11,10 +12,13 @@ namespace View.GameTable
         private GameObject _treeTwo;
         private GameObject _treeThree;
 
-        private int _width = 500;
-        private int _height = 500;
+        private float _seed;
+        private float _zoom = 90f;
 
-        private float _sid, _zoom = 90; 
+        private readonly int _cellBlockSize = 200;
+        private readonly int _activeChunkRange = 3;
+
+        private readonly Dictionary<Vector2Int, GameObject> _generatedChunks = new();
 
         EnvironmentFactory(IAssetProviderService assetProviderService)
         {
@@ -28,27 +32,71 @@ namespace View.GameTable
             _treeThree = _assetProviderService.LoadAssetFromResources<GameObject>(Constants.TreeThreeViewPath);
         }
         
-        public void ConstructEnvironment(Transform parent, Grid grid)
+        public void Initialize()
+        {
+            _seed = Random.Range(0, 9999999);
+            LoadEnvironmentViews();
+        }
+        
+        public void UpdateEnvironmentAround(Vector3 worldPosition, Transform parent, Grid grid)
         {
             if (grid == null)
-            {
                 return;
-            }
-            
-            LoadEnvironmentViews();
 
-            _sid = Random.Range(0, 9999999);
-            
-            int cellBlockSize = 10;
+            Vector3Int cellPos = grid.WorldToCell(worldPosition);
+            Vector2Int centerChunk = new(cellPos.x / _cellBlockSize, cellPos.y / _cellBlockSize);
 
-            for (int x = 0; x < _width; x += cellBlockSize)
+            HashSet<Vector2Int> neededChunks = new();
+
+            for (int dx = -_activeChunkRange; dx <= _activeChunkRange; dx++)
             {
-                for (int y = 0; y < _height; y += cellBlockSize)
+                for (int dy = -_activeChunkRange; dy <= _activeChunkRange; dy++)
                 {
-                    Vector3Int cellPosition = new Vector3Int(x, y, 0);
-                    Vector3 worldPosition = grid.CellToWorld(cellPosition) + grid.cellSize * cellBlockSize / 2f;
+                    Vector2Int chunkCoord = centerChunk + new Vector2Int(dx, dy);
+                    neededChunks.Add(chunkCoord);
 
-                    float noiseValue = Mathf.PerlinNoise((x + _sid) / _zoom, (y + _sid) / _zoom);
+                    if (!_generatedChunks.ContainsKey(chunkCoord))
+                    {
+                        GameObject chunk = GenerateChunkAt(chunkCoord, parent, grid);
+                        _generatedChunks.Add(chunkCoord, chunk);
+                    }
+                    else
+                    {
+                        _generatedChunks[chunkCoord].SetActive(true);
+                    }
+                }
+            }
+
+            foreach (var kvp in _generatedChunks)
+            {
+                if (!neededChunks.Contains(kvp.Key))
+                {
+                    kvp.Value.SetActive(false);
+                }
+            }
+        }
+        
+        private GameObject GenerateChunkAt(Vector2Int chunkCoord, Transform parent, Grid grid)
+        {
+            GameObject chunkRoot = new($"Chunk_{chunkCoord.x}_{chunkCoord.y}");
+            chunkRoot.transform.parent = parent;
+
+            int baseX = chunkCoord.x * _cellBlockSize;
+            int baseY = chunkCoord.y * _cellBlockSize;
+
+            int cellBlockSize = 10;
+            
+            for (int x = 0; x < _cellBlockSize; x += cellBlockSize)
+            {
+                for (int y = 0; y < _cellBlockSize; y += cellBlockSize)
+                {
+                    int worldX = baseX + x;
+                    int worldY = baseY + y;
+
+                    Vector3Int cellPosition = new(worldX, worldY, 0);
+                    Vector3 worldPosition = grid.CellToWorld(cellPosition) + grid.cellSize / 2f;
+
+                    float noiseValue = Mathf.PerlinNoise((worldX + _seed) / _zoom, (worldY + _seed) / _zoom);
 
                     GameObject prefabToSpawn = null;
 
@@ -61,11 +109,13 @@ namespace View.GameTable
 
                     if (prefabToSpawn != null)
                     {
-                        var instance = Object.Instantiate(prefabToSpawn, worldPosition, Quaternion.identity, parent);
+                        var instance = Object.Instantiate(prefabToSpawn, worldPosition, Quaternion.identity, chunkRoot.transform);
                         instance.SetActive(true);
                     }
                 }
             }
+
+            return chunkRoot;
         }
     }
 }

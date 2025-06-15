@@ -22,6 +22,7 @@ namespace StateMachine.Global.States
         private readonly CameraMover _cameraMover;
         private readonly DragService _dragService;
         private readonly CardDragController _cardDragController;
+        private readonly EnvironmentFactory _environmentFactory;
 
         public MainState(
             StateMachineBase stateMachine,
@@ -30,7 +31,8 @@ namespace StateMachine.Global.States
             InputService inputService,
             CameraMover cameraMover,
             DragService dragService,
-            CardDragController cardDragController
+            CardDragController cardDragController,
+            EnvironmentFactory environmentFactory
         )
         {
             _stateMachine = stateMachine;
@@ -40,6 +42,7 @@ namespace StateMachine.Global.States
             _cameraMover = cameraMover;
             _dragService = dragService;
             _cardDragController = cardDragController;
+            _environmentFactory = environmentFactory;
         }
 
         public override void Enter()
@@ -76,6 +79,8 @@ namespace StateMachine.Global.States
             
             SubscribeCardDragController();
             SubscribeConnectionDrawing();
+
+            _cameraMover.OnCameraMove += _gameTableMediator.HandleCameraMove;
         }
 
         private void SubscribeConnectionDrawing()

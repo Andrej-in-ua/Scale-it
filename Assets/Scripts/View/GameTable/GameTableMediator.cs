@@ -51,7 +51,7 @@ namespace View.GameTable
             _grid = _gridManager.Construct();
             _cardViewPool.Construct();
             _connectionsContainer = _connectionFactory.CreateConnectionsContainer();
-            _environmentFactory.ConstructEnvironment(_grid.transform, _grid);
+            _environmentFactory.Initialize();
 
             _isConstructed = true;
 
@@ -90,6 +90,11 @@ namespace View.GameTable
                 cardView.transform.SetPositionAndRotation(placedPosition.Value, Quaternion.identity);
                 // TODO: Relocate
             }
+        }
+
+        public void HandleCameraMove(Transform cameraTransform)
+        {
+            _environmentFactory.UpdateEnvironmentAround(Camera.main.transform.position, _grid.transform, _grid);
         }
 
         public void HandleStartDraw(DragContext context)
