@@ -11,6 +11,11 @@ public class Constants
     
     public const string ConnectionViewPath = "GameTable/ConnectionViewPrefab";
     public const string ConnectionsContainerPath = "GameTable/ConnectionsContainerPrefab";
+    
+    // Environment
+    public const string TreeOneViewPath = "GameTable/Environment/TreeOneViewPrefab";
+    public const string TreeTwoViewPath = "GameTable/Environment/TreeTwoViewPrefab";
+    public const string TreeThreeViewPath = "GameTable/Environment/TreeThreeViewPrefab";
 
     // Services
     public const string InputServicePath = "InputService";

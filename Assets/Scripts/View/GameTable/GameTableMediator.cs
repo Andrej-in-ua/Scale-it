@@ -16,6 +16,7 @@ namespace View.GameTable
         private readonly GridManager _gridManager;
         private readonly CardViewPool _cardViewPool;
         private readonly ConnectionFactory _connectionFactory;
+        private readonly EnvironmentFactory _environmentFactory;
 
         private bool _isConstructed;
 
@@ -30,22 +31,27 @@ namespace View.GameTable
 
         private Transform _connectionsContainer;
 
+        private Grid _grid;
+
         public GameTableMediator(
             GridManager gridManager,
             CardViewPool cardViewPool,
-            ConnectionFactory connectionFactory
+            ConnectionFactory connectionFactory,
+            EnvironmentFactory environmentFactory
         )
         {
             _gridManager = gridManager;
             _cardViewPool = cardViewPool;
             _connectionFactory = connectionFactory;
+            _environmentFactory = environmentFactory;
         }
 
         public void ConstructGameTable()
         {
-            _gridManager.Construct();
+            _grid = _gridManager.Construct();
             _cardViewPool.Construct();
             _connectionsContainer = _connectionFactory.CreateConnectionsContainer();
+            _environmentFactory.ConstructEnvironment(_grid.transform, _grid);
 
             _isConstructed = true;
 
