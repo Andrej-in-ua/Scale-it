@@ -1,121 +1,111 @@
 using System.Collections.Generic;
-using Services;
 using UnityEngine;
+using Services;
 
 namespace View.GameTable
 {
     public class EnvironmentFactory
     {
         private readonly IAssetProviderService _assetProviderService;
+
+        private GameObject _treeOne, _treeTwo, _treeThree;
+        private GameObject _container;
         
-        private GameObject _treeOne;
-        private GameObject _treeTwo;
-        private GameObject _treeThree;
-
-        private float _seed;
-        private float _zoom = 90f;
-
-        private readonly int _cellBlockSize = 200;
-        private readonly int _activeChunkRange = 3;
-
         private readonly Dictionary<Vector2Int, GameObject> _generatedChunks = new();
 
-        EnvironmentFactory(IAssetProviderService assetProviderService)
+        private float _seed;
+        
+        private const float Zoom = 90f;
+        private const int ChunkSize = 120;
+        private const int CellStep = 10;
+        private const int ActiveChunkRange = 3;
+
+        public EnvironmentFactory(IAssetProviderService assetProviderService)
         {
             _assetProviderService = assetProviderService;
         }
         
-        public void LoadEnvironmentViews()
+        public void Initialize(Vector3 cameraPosition, Grid grid)
         {
-            _treeOne = _assetProviderService.LoadAssetFromResources<GameObject>(Constants.TreeOneViewPath);
-            _treeTwo = _assetProviderService.LoadAssetFromResources<GameObject>(Constants.TreeTwoViewPath);
-            _treeThree = _assetProviderService.LoadAssetFromResources<GameObject>(Constants.TreeThreeViewPath);
-        }
-        
-        public void Initialize()
-        {
+            _container = Object.Instantiate(new GameObject("Environment Container"));
+            
             _seed = Random.Range(0, 9999999);
             LoadEnvironmentViews();
+            UpdateEnvironmentAround(cameraPosition, grid);
         }
-        
-        public void UpdateEnvironmentAround(Vector3 worldPosition, Transform parent, Grid grid)
+
+        private void LoadEnvironmentViews()
         {
-            if (grid == null)
-                return;
+            _treeOne   = _assetProviderService.LoadAssetFromResources<GameObject>(Constants.TreeOneViewPath);
+            _treeTwo   = _assetProviderService.LoadAssetFromResources<GameObject>(Constants.TreeTwoViewPath);
+            _treeThree = _assetProviderService.LoadAssetFromResources<GameObject>(Constants.TreeThreeViewPath);
+        }
 
-            Vector3Int cellPos = grid.WorldToCell(worldPosition);
-            Vector2Int centerChunk = new(cellPos.x / _cellBlockSize, cellPos.y / _cellBlockSize);
+        public void UpdateEnvironmentAround(Vector3 cameraPosition, Grid grid)
+        {
+            if (grid == null) return;
 
-            HashSet<Vector2Int> neededChunks = new();
+            Vector3Int cellPos = grid.WorldToCell(cameraPosition);
+            Vector2Int centerChunk = new(cellPos.x / ChunkSize, cellPos.y / ChunkSize);
 
-            for (int dx = -_activeChunkRange; dx <= _activeChunkRange; dx++)
+            HashSet<Vector2Int> requiredChunks = new();
+
+            for (int dx = -ActiveChunkRange; dx <= ActiveChunkRange; dx++)
             {
-                for (int dy = -_activeChunkRange; dy <= _activeChunkRange; dy++)
+                for (int dy = -ActiveChunkRange; dy <= ActiveChunkRange; dy++)
                 {
                     Vector2Int chunkCoord = centerChunk + new Vector2Int(dx, dy);
-                    neededChunks.Add(chunkCoord);
+                    requiredChunks.Add(chunkCoord);
 
-                    if (!_generatedChunks.ContainsKey(chunkCoord))
+                    if (!_generatedChunks.TryGetValue(chunkCoord, out GameObject chunk))
                     {
-                        GameObject chunk = GenerateChunkAt(chunkCoord, parent, grid);
+                        chunk = GenerateChunk(chunkCoord, _container.transform, grid);
                         _generatedChunks.Add(chunkCoord, chunk);
                     }
-                    else
-                    {
-                        _generatedChunks[chunkCoord].SetActive(true);
-                    }
+                    chunk.SetActive(true);
                 }
             }
 
-            foreach (var kvp in _generatedChunks)
+            foreach (var (coord, chunk) in _generatedChunks)
             {
-                if (!neededChunks.Contains(kvp.Key))
-                {
-                    kvp.Value.SetActive(false);
-                }
+                if (!requiredChunks.Contains(coord))
+                    chunk.SetActive(false);
             }
         }
-        
-        private GameObject GenerateChunkAt(Vector2Int chunkCoord, Transform parent, Grid grid)
+
+        private GameObject GenerateChunk(Vector2Int chunkCoord, Transform parent, Grid grid)
         {
             GameObject chunkRoot = new($"Chunk_{chunkCoord.x}_{chunkCoord.y}");
-            chunkRoot.transform.parent = parent;
+            chunkRoot.transform.SetParent(parent);
 
-            int baseX = chunkCoord.x * _cellBlockSize;
-            int baseY = chunkCoord.y * _cellBlockSize;
+            int baseX = chunkCoord.x * ChunkSize;
+            int baseY = chunkCoord.y * ChunkSize;
 
-            int cellBlockSize = 10;
-            
-            for (int x = 0; x < _cellBlockSize; x += cellBlockSize)
+            for (int x = 0; x < ChunkSize; x += CellStep)
             {
-                for (int y = 0; y < _cellBlockSize; y += cellBlockSize)
+                for (int y = 0; y < ChunkSize; y += CellStep)
                 {
                     int worldX = baseX + x;
                     int worldY = baseY + y;
+                    Vector3 worldPosition = grid.CellToWorld(new Vector3Int(worldX, worldY, 0)) + grid.cellSize / 2f;
 
-                    Vector3Int cellPosition = new(worldX, worldY, 0);
-                    Vector3 worldPosition = grid.CellToWorld(cellPosition) + grid.cellSize / 2f;
+                    float noise = Mathf.PerlinNoise((worldX + _seed) / Zoom, (worldY + _seed) / Zoom);
+                    GameObject prefab = GetPrefabByNoise(noise);
 
-                    float noiseValue = Mathf.PerlinNoise((worldX + _seed) / _zoom, (worldY + _seed) / _zoom);
-
-                    GameObject prefabToSpawn = null;
-
-                    if (noiseValue > 0.75f)
-                        prefabToSpawn = _treeThree;
-                    else if (noiseValue > 0.55f)
-                        prefabToSpawn = _treeTwo;
-                    else if (noiseValue > 0.4f)
-                        prefabToSpawn = _treeOne;
-
-                    if (prefabToSpawn != null)
-                    {
-                        var instance = Object.Instantiate(prefabToSpawn, worldPosition, Quaternion.identity, chunkRoot.transform);
-                        instance.SetActive(true);
-                    }
+                    if (prefab != null)
+                        Object.Instantiate(prefab, worldPosition, Quaternion.identity, chunkRoot.transform).SetActive(true);
                 }
             }
 
             return chunkRoot;
+        }
+
+        private GameObject GetPrefabByNoise(float noise)
+        {
+            if (noise > 0.75f) return _treeThree;
+            if (noise > 0.55f) return _treeTwo;
+            if (noise > 0.40f) return _treeOne;
+            return null;
         }
     }
 }

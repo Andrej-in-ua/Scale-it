@@ -51,7 +51,7 @@ namespace View.GameTable
             _grid = _gridManager.Construct();
             _cardViewPool.Construct();
             _connectionsContainer = _connectionFactory.CreateConnectionsContainer();
-            _environmentFactory.Initialize();
+            _environmentFactory.Initialize(Camera.main.transform.position, _grid);
 
             _isConstructed = true;
 
@@ -94,7 +94,7 @@ namespace View.GameTable
 
         public void HandleCameraMove(Transform cameraTransform)
         {
-            _environmentFactory.UpdateEnvironmentAround(Camera.main.transform.position, _grid.transform, _grid);
+            _environmentFactory.UpdateEnvironmentAround(cameraTransform.position, _grid);
         }
 
         public void HandleStartDraw(DragContext context)
