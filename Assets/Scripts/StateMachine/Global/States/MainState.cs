@@ -77,10 +77,10 @@ namespace StateMachine.Global.States
             Application.quitting += Exit;
             SceneManager.sceneLoaded += OnSceneLoaded;
             
+            _cameraMover.OnCameraMove += _gameTableMediator.HandleCameraMove;
+            
             SubscribeCardDragController();
             SubscribeConnectionDrawing();
-
-            _cameraMover.OnCameraMove += _gameTableMediator.HandleCameraMove;
         }
 
         private void SubscribeConnectionDrawing()
@@ -136,6 +136,8 @@ namespace StateMachine.Global.States
         {
             Application.quitting -= Exit;
             SceneManager.sceneLoaded -= OnSceneLoaded;
+            
+            _cameraMover.OnCameraMove -= _gameTableMediator.HandleCameraMove;
             
             UnsubscribeCardDagController();
             UnsubscribeConnectionDrawing();
