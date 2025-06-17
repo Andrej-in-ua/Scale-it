@@ -20,13 +20,15 @@ namespace View.GameTable
             _gridFactory = gridFactory;
         }
 
-        public void Construct()
+        public Grid Construct()
         {
             _grid = _gridFactory.Create();
 
             _occupiedExclusive = new Dictionary<Vector2Int, PlaceableReference>();
             _occupiedShared = new Dictionary<Vector2Int, List<PlaceableReference>>();
             _objectsIndex = new Dictionary<int, List<Vector2Int>>();
+
+            return _grid;
         }
 
         public Vector3? PlaceOnNearestAvailablePosition(

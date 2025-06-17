@@ -8,6 +8,8 @@ namespace Services
 {
     public class CameraMover : ITickable, IDisposable
     {
+        public event Action<Transform> OnCameraMove;
+        
         private readonly InputService _inputService;
         private Camera _camera;
 
@@ -42,7 +44,7 @@ namespace Services
         public void Tick()
         {
             if (!_isMoving) return;
-
+            
             var zoomFactor = Mathf.InverseLerp(
                 Constants.CameraSettings.ZoomMin,
                 Constants.CameraSettings.ZoomMax,
@@ -74,6 +76,8 @@ namespace Services
                     _moveVelocity.y * Time.deltaTime,
                     0f
                 );
+                
+                OnCameraMove?.Invoke(_camera.transform);
             }
             else
             {
