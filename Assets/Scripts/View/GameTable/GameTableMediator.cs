@@ -16,6 +16,7 @@ namespace View.GameTable
 
         private readonly GridManager _gridManager;
         private readonly CardViewPool _cardViewPool;
+        private readonly ConnectionFactory _connectionFactory;
 
         private bool _isConstructed;
 
@@ -24,20 +25,28 @@ namespace View.GameTable
         private CardView _originalCardView;
         private CardView _createdCardView;
         private CardView _draggableCardView;
+        
+        private IDraggable _draggablePort;
+        private int _portPriority = 2;
+
+        private Transform _connectionsContainer;
 
         public GameTableMediator(
             GridManager gridManager,
-            CardViewPool cardViewPool
+            CardViewPool cardViewPool,
+            ConnectionFactory connectionFactory
         )
         {
             _gridManager = gridManager;
             _cardViewPool = cardViewPool;
+            _connectionFactory = connectionFactory;
         }
 
         public void ConstructGameTable()
         {
             _gridManager.Construct(World.DefaultGameObjectInjectionWorld.EntityManager);
             _cardViewPool.Construct();
+            _connectionsContainer = _connectionFactory.CreateConnectionsContainer();
 
             _isConstructed = true;
 
@@ -78,6 +87,33 @@ namespace View.GameTable
             }
         }
 
+        public void HandleStartDraw(DragContext context)
+        {
+            if (_draggablePort != null)
+                return;
+
+            IDraggable draggable = context.Draggable;
+
+            if (draggable.Priority != _portPriority)
+                return;
+            
+            _connectionFactory.CreateConnectionView(_connectionsContainer);
+
+            _draggablePort = draggable;
+        }
+
+        public void HandleDraw(DragContext context)
+        {
+            if (_draggablePort == null) return;
+            // pathfinding
+        }
+        
+        public void HandleStopDraw(DragContext context)
+        {
+            _draggablePort = null;
+            // pathfinding
+        }
+        
         public void HandleStartDrag(CardDragContext context)
         {
             _isDragging = true;

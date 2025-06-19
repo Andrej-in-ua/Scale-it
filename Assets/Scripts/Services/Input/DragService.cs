@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using ECS.Components;
-using Unity.Entities;
-using Unity.Mathematics;
 using UnityEngine;
-using View.GameTable;
 
 namespace Services.Input
 {
@@ -15,16 +10,13 @@ namespace Services.Input
         public event Action<DragContext> OnStopDrag;
 
         private readonly InputService _inputService;
-        private readonly GridManager _gridManager;
 
-        private List<(IDraggable, Vector2)> _draggables;
-        
-        private Vector3 _dragStartPosition;
+        private IDraggable _draggable;
+        private Vector2 _localHitPoint;
 
-        public DragService(InputService inputService, GridManager gridManager)
+        public DragService(InputService inputService)
         {
             _inputService = inputService;
-            _gridManager = gridManager;
         }
 
         public void Construct()
@@ -36,41 +28,46 @@ namespace Services.Input
 
         private void HandleMouseLeftDown(MouseContext mouseContext)
         {
-            if (_draggables != null || OnStartDrag == null) return;
+            if (_draggable != null || OnStartDrag == null) return;
 
-            _draggables = new List<(IDraggable, Vector2)>();
             // ReSharper disable once Unity.PreferNonAllocApi
             var hits = Physics2D.GetRayIntersectionAll(mouseContext.GetMouseRay(), Mathf.Infinity);
 
             foreach (var hit in hits)
             {
                 IDraggable draggable = hit.collider?.GetComponent<IDraggable>();
-                // Debug.Log("Dragger hit: " + draggable + " / " + hit.point + " / " + hit.distance);
-                if (draggable != null)
-                    _draggables.Add((draggable, hit.point - (Vector2)hit.transform.position));
+                
+                if (draggable == null) continue;
+
+                if (_draggable == null || draggable.Priority > _draggable.Priority)
+                {
+                    _draggable = draggable;
+                    _localHitPoint = hit.point - (Vector2)hit.transform.position;
+                }
             }
             
-            _dragStartPosition = new Vector2(mouseContext.GetMouseWorldPosition().x, mouseContext.GetMouseWorldPosition().y);
+            // _dragStartPosition = new Vector2(mouseContext.GetMouseWorldPosition().x, mouseContext.GetMouseWorldPosition().y);
 
-            OnStartDrag.Invoke(CreateDragContext(mouseContext));
+            if (_draggable != null)
+                OnStartDrag.Invoke(CreateDragContext(mouseContext));
         }
 
         private void HandleMouseMove(MouseContext mouseContext)
         {
-            if (_draggables == null || OnDrag == null) return;
-            
+            if (_draggable == null || OnDrag == null) return;
+
             //Example of pathfinder request
-            var startCellPosition = _gridManager.WorldToCell(_dragStartPosition);
-            var endCellPosition = _gridManager.WorldToCell(new Vector2(mouseContext.GetMouseWorldPosition().x, mouseContext.GetMouseWorldPosition().y));
+            // var startCellPosition = _gridManager.WorldToCell(_dragStartPosition);
+            // var endCellPosition = _gridManager.WorldToCell(new Vector2(mouseContext.GetMouseWorldPosition().x, mouseContext.GetMouseWorldPosition().y));
             
-            var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-            var entity = entityManager.CreateEntity();
-            entityManager.AddComponentData(entity, new PathRequest
-            {
-                Start = new int2(startCellPosition.x, startCellPosition.y),
-                End = new int2(endCellPosition.x, endCellPosition.y)
-            });
-            entityManager.AddBuffer<PathResult>(entity);
+            // var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+            // var entity = entityManager.CreateEntity();
+            // entityManager.AddComponentData(entity, new PathRequest
+            // {
+            //     Start = new int2(startCellPosition.x, startCellPosition.y),
+            //     End = new int2(endCellPosition.x, endCellPosition.y)
+            // });
+            // entityManager.AddBuffer<PathResult>(entity);
             //
 
             OnDrag.Invoke(CreateDragContext(mouseContext));
@@ -78,17 +75,19 @@ namespace Services.Input
 
         private void HandleMouseLeftUp(MouseContext mouseContext)
         {
-            if (_draggables == null || OnStopDrag == null) return;
+            if (_draggable == null || OnStopDrag == null) return;
 
             OnStopDrag.Invoke(CreateDragContext(mouseContext));
-            _draggables = null;
+            _draggable = null;
+            _localHitPoint = Vector2.zero;
         }
 
         private DragContext CreateDragContext(MouseContext mouseContext)
         {
             return new DragContext
             {
-                Draggables = _draggables,
+                Draggable = _draggable,
+                LocalHitPoint = _localHitPoint,
                 MouseWorldPosition = mouseContext.GetMouseWorldPosition()
             };
         }

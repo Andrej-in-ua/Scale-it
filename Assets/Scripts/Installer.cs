@@ -29,7 +29,6 @@ public class Installer : MonoInstaller
     private void BindMediator()
     {
         Container.Bind<CardDragController>().AsSingle();
-
         Container.Bind<UIGameMediator>().AsSingle();
         Container.Bind<GameTableMediator>().AsSingle();
     }
@@ -46,6 +45,7 @@ public class Installer : MonoInstaller
         Container.Bind<CardViewPool>().AsSingle();
         Container.Bind<GridFactory>().AsSingle();
         Container.Bind<GridManager>().AsSingle();
+        Container.Bind<ConnectionFactory>().AsSingle();
     }
 
     private void BindServices()

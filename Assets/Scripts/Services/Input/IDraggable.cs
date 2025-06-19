@@ -4,5 +4,7 @@ namespace Services.Input
     {
         public const string DraggableViewSortingLayerName= "DraggableView";
         public const string DraggableUISortingLayerName= "DraggableUI";
+
+        public int Priority => 1;
     }
 }

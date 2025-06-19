@@ -21,7 +21,7 @@ namespace StateMachine.Global.States
         private readonly InputService _inputService;
         private readonly CameraMover _cameraMover;
         private readonly DragService _dragService;
-         private readonly CardDragController _cardDragController;
+        private readonly CardDragController _cardDragController;
 
         public MainState(
             StateMachineBase stateMachine,
@@ -75,6 +75,7 @@ namespace StateMachine.Global.States
             SceneManager.sceneLoaded += OnSceneLoaded;
             
             SubscribeCardDragController();
+            SubscribeConnectionDrawing();
         }
 
         private void SubscribeCardDragController()
@@ -93,7 +94,7 @@ namespace StateMachine.Global.States
             _dragService.OnStartDrag += _cardDragController.HandleStartDrag;
             _dragService.OnDrag += _cardDragController.HandleDrag;
             _dragService.OnStopDrag += _cardDragController.HandleStopDrag;
-            
+
             // ... CardDragController <-> GameTableMediator
             _cardDragController.OnStartDrag += _gameTableMediator.HandleStartDrag;
             _cardDragController.OnDrag += _gameTableMediator.HandleDrag;
@@ -111,12 +112,20 @@ namespace StateMachine.Global.States
             _cardDragController.OnRollback += _uiGameMediator.HandleRollback;
         }
 
+        private void SubscribeConnectionDrawing()
+        {
+            _dragService.OnStartDrag += _gameTableMediator.HandleStartDraw;
+            _dragService.OnDrag += _gameTableMediator.HandleDraw;
+            _dragService.OnStopDrag += _gameTableMediator.HandleStopDraw;
+        }
+
         private void Unsubscribe()
         {
             Application.quitting -= Exit;
             SceneManager.sceneLoaded -= OnSceneLoaded;
             
             UnsubscribeCardDagController();
+            UnsubscribeConnectionDrawing();
         }
 
         private void UnsubscribeCardDagController()
@@ -150,6 +159,13 @@ namespace StateMachine.Global.States
             _cardDragController.OnChangeToView -= _uiGameMediator.HandleChangeToView;
             _cardDragController.OnStopDrag -= _uiGameMediator.HandleStopDrag;
             _cardDragController.OnRollback -= _uiGameMediator.HandleRollback;
+        }
+
+        private void UnsubscribeConnectionDrawing()
+        {
+            _dragService.OnStartDrag -= _gameTableMediator.HandleStartDraw;
+            _dragService.OnDrag -= _gameTableMediator.HandleDraw;
+            _dragService.OnStopDrag -= _gameTableMediator.HandleStopDraw;
         }
 
         public override void Exit()
