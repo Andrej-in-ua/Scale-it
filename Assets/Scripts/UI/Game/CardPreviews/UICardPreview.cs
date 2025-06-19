@@ -10,8 +10,6 @@ namespace UI.Game.CardPreviews
         public TMP_Text Name;
 
         public GameObject CardsCountWindow;
-        
-        public int Priority => 1;
 
         [NonSerialized] public int CardId;
     }

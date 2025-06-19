@@ -91,7 +91,7 @@ namespace View.GameTable
             if (_draggablePort != null)
                 return;
 
-            IDraggable draggable = context.Draggable.Value.Item1;
+            IDraggable draggable = context.Draggable;
 
             if (draggable.Priority != _portPriority)
                 return;

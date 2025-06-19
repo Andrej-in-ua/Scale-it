@@ -11,7 +11,8 @@ namespace Services.Input
 
         private readonly InputService _inputService;
 
-        private (IDraggable element, Vector2 dragOffset)? _draggable;
+        private IDraggable _draggable;
+        private Vector2 _localHitPoint;
 
         public DragService(InputService inputService)
         {
@@ -38,10 +39,11 @@ namespace Services.Input
                 
                 if (draggable == null) continue;
 
-                Vector3 offset = hit.point - (Vector2)hit.transform.position;
-
-                if (_draggable == null || draggable.Priority > _draggable.Value.element.Priority)
-                    _draggable = (draggable, offset);
+                if (_draggable == null || draggable.Priority > _draggable.Priority)
+                {
+                    _draggable = draggable;
+                    _localHitPoint = hit.point - (Vector2)hit.transform.position;
+                }
             }
 
             if (_draggable != null)
@@ -61,6 +63,7 @@ namespace Services.Input
 
             OnStopDrag.Invoke(CreateDragContext(mouseContext));
             _draggable = null;
+            _localHitPoint = Vector2.zero;
         }
 
         private DragContext CreateDragContext(MouseContext mouseContext)
@@ -68,6 +71,7 @@ namespace Services.Input
             return new DragContext
             {
                 Draggable = _draggable,
+                LocalHitPoint = _localHitPoint,
                 MouseWorldPosition = mouseContext.GetMouseWorldPosition()
             };
         }
