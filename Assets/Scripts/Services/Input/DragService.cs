@@ -18,13 +18,20 @@ namespace Services.Input
         private readonly GridManager _gridManager;
 
         private List<(IDraggable, Vector2)> _draggables;
+        private IDraggable _draggable;
+        private Vector2 _localHitPoint;
         
         private Vector3 _dragStartPosition;
+        private float _pathRequestCooldown = 0.1f;
+        private float _lastPathRequestTime;
+        private Entity _activePathRequestEntity;
+        private EntityManager _entityManager;
 
         public DragService(InputService inputService, GridManager gridManager)
         {
             _inputService = inputService;
             _gridManager = gridManager;
+            _entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
         }
 
         public void Construct()
@@ -49,8 +56,19 @@ namespace Services.Input
                 if (draggable != null)
                     _draggables.Add((draggable, hit.point - (Vector2)hit.transform.position));
             }
-            
+
             _dragStartPosition = new Vector2(mouseContext.GetMouseWorldPosition().x, mouseContext.GetMouseWorldPosition().y);
+            
+            var startCellPosition = _gridManager.WorldToCell(_dragStartPosition);
+            var endCellPosition = _gridManager.WorldToCell(new Vector2(mouseContext.GetMouseWorldPosition().x, mouseContext.GetMouseWorldPosition().y));
+            
+            _activePathRequestEntity  = _entityManager.CreateEntity();
+            _entityManager.AddComponentData(_activePathRequestEntity, new PathRequest
+            {
+                Start = new int2(startCellPosition.x, startCellPosition.y),
+                End = new int2(endCellPosition.x, endCellPosition.y)
+            });
+            _entityManager.AddBuffer<PathResult>(_activePathRequestEntity);
 
             OnStartDrag.Invoke(CreateDragContext(mouseContext));
         }
@@ -59,19 +77,20 @@ namespace Services.Input
         {
             if (_draggables == null || OnDrag == null) return;
             
-            //Example of pathfinder request
-            var startCellPosition = _gridManager.WorldToCell(_dragStartPosition);
-            var endCellPosition = _gridManager.WorldToCell(new Vector2(mouseContext.GetMouseWorldPosition().x, mouseContext.GetMouseWorldPosition().y));
-            
-            var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-            var entity = entityManager.CreateEntity();
-            entityManager.AddComponentData(entity, new PathRequest
+            if (Time.time - _lastPathRequestTime >= _pathRequestCooldown && _entityManager.HasComponent<PathRequest>(_activePathRequestEntity))
             {
-                Start = new int2(startCellPosition.x, startCellPosition.y),
-                End = new int2(endCellPosition.x, endCellPosition.y)
-            });
-            entityManager.AddBuffer<PathResult>(entity);
-            //
+                _lastPathRequestTime = Time.time;
+                
+                var startCellPosition = _gridManager.WorldToCell(_dragStartPosition);
+                var endCellPosition = _gridManager.WorldToCell(new Vector2(mouseContext.GetMouseWorldPosition().x, mouseContext.GetMouseWorldPosition().y));
+            
+                _entityManager.SetComponentData(_activePathRequestEntity, new PathRequest
+                {
+                    Start = new int2(startCellPosition.x, startCellPosition.y),
+                    End = new int2(endCellPosition.x, endCellPosition.y)
+                });
+                _entityManager.AddBuffer<PathResult>(_activePathRequestEntity);
+            }
 
             OnDrag.Invoke(CreateDragContext(mouseContext));
         }
@@ -80,6 +99,9 @@ namespace Services.Input
         {
             if (_draggables == null || OnStopDrag == null) return;
 
+            if (_entityManager.Exists(_activePathRequestEntity))
+                _entityManager.DestroyEntity(_activePathRequestEntity);
+            
             OnStopDrag.Invoke(CreateDragContext(mouseContext));
             _draggables = null;
         }

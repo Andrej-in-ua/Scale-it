@@ -1,9 +1,7 @@
 ﻿using ECS.Components;
-using ECS.Systems.Jobs;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Jobs;
 using Unity.Mathematics;
 
 namespace ECS.Systems
@@ -23,6 +21,7 @@ namespace ECS.Systems
                 GridCosts = gridMap,
                 Ecb = ecb
             };
+
             state.Dependency = job.ScheduleParallel(state.Dependency);
         }
 
@@ -38,6 +37,7 @@ namespace ECS.Systems
                 var openSet = new NativeList<int2>(Allocator.Temp);
                 var cameFrom = new NativeParallelHashMap<int2, int2>(128, Allocator.Temp);
                 var gScore = new NativeParallelHashMap<int2, float>(128, Allocator.Temp);
+                var neighbors = new NativeList<int2>(4, Allocator.Temp);
 
                 openSet.Add(request.Start);
                 gScore[request.Start] = 0f;
@@ -49,19 +49,19 @@ namespace ECS.Systems
 
                     if (current.Equals(request.End))
                     {
-                        // Reconstruct path
                         path.Add(current);
                         while (cameFrom.TryGetValue(current, out var prev))
                         {
                             current = prev;
                             path.Add(current);
                         }
-
                         break;
                     }
 
-                    foreach (var neighbor in GetNeighbors(current))
+                    GetNeighbors(current, ref neighbors);
+                    for (int i = 0; i < neighbors.Length; i++)
                     {
+                        var neighbor = neighbors[i];
                         if (!GridCosts.TryGetValue(neighbor, out var cost)) continue;
 
                         var tentativeGScore = gScore[current] + cost;
@@ -83,20 +83,18 @@ namespace ECS.Systems
                 openSet.Dispose();
                 cameFrom.Dispose();
                 gScore.Dispose();
+                neighbors.Dispose();
 
                 Ecb.RemoveComponent<PathRequest>(sortKey, entity);
             }
 
-            private static NativeList<int2> GetNeighbors(int2 cell)
+            private static void GetNeighbors(int2 cell, ref NativeList<int2> neighbors)
             {
-                var list = new NativeList<int2>(4, Allocator.Temp)
-                {
-                    cell + new int2(1, 0),
-                    cell + new int2(-1, 0),
-                    cell + new int2(0, 1),
-                    cell + new int2(0, -1)
-                };
-                return list;
+                neighbors.Clear();
+                neighbors.Add(cell + new int2(1, 0));
+                neighbors.Add(cell + new int2(-1, 0));
+                neighbors.Add(cell + new int2(0, 1));
+                neighbors.Add(cell + new int2(0, -1));
             }
         }
     }
