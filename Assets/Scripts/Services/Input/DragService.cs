@@ -45,6 +45,8 @@ namespace Services.Input
                     _localHitPoint = hit.point - (Vector2)hit.transform.position;
                 }
             }
+            
+            // _dragStartPosition = new Vector2(mouseContext.GetMouseWorldPosition().x, mouseContext.GetMouseWorldPosition().y);
 
             if (_draggable != null)
                 OnStartDrag.Invoke(CreateDragContext(mouseContext));
@@ -53,6 +55,20 @@ namespace Services.Input
         private void HandleMouseMove(MouseContext mouseContext)
         {
             if (_draggable == null || OnDrag == null) return;
+
+            //Example of pathfinder request
+            // var startCellPosition = _gridManager.WorldToCell(_dragStartPosition);
+            // var endCellPosition = _gridManager.WorldToCell(new Vector2(mouseContext.GetMouseWorldPosition().x, mouseContext.GetMouseWorldPosition().y));
+            
+            // var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+            // var entity = entityManager.CreateEntity();
+            // entityManager.AddComponentData(entity, new PathRequest
+            // {
+            //     Start = new int2(startCellPosition.x, startCellPosition.y),
+            //     End = new int2(endCellPosition.x, endCellPosition.y)
+            // });
+            // entityManager.AddBuffer<PathResult>(entity);
+            //
 
             OnDrag.Invoke(CreateDragContext(mouseContext));
         }
