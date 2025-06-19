@@ -1,7 +1,6 @@
 ﻿using System;
 using Services.Input;
 using UI.Game.CardPreviews;
-
 using UnityEngine;
 using View.GameTable;
 
@@ -33,28 +32,21 @@ namespace Controllers
 
         public void HandleStartDrag(DragContext context)
         {
-            if (_draggable != null || OnStartDrag == null) return;
+            if (_draggable != null || OnStartDrag == null)
+                return;
 
-            foreach (var (draggable, localHitPoint) in context.Draggables)
-            {
-                if (draggable is CardView or UICardPreview)
-                {
-                    _draggable = draggable;
-                    _localHitPoint = localHitPoint;
+            _draggable = context.Draggable;
+            _localHitPoint = context.LocalHitPoint;
 
-                    OnStartDrag.Invoke(CreateCardDragContext(context.MouseWorldPosition));
-                    return;
-                }
-            }
+            OnStartDrag.Invoke(CreateCardDragContext(context.MouseWorldPosition));
         }
 
         public void HandleDrag(DragContext context)
         {
             if (_draggable == null) return;
-            
             OnDrag?.Invoke(CreateCardDragContext(context.MouseWorldPosition));
         }
-        
+
         public void HandleStopDrag(DragContext context)
         {
             if (_draggable == null) return;
@@ -64,13 +56,13 @@ namespace Controllers
             _draggable = null;
             _localHitPoint = Vector2.zero;
         }
-        
+
         public void HandleCardDragRollback()
         {
             if (_draggable == null) return;
 
             OnRollback?.Invoke(CreateCardDragContext(Vector3.zero));
-            
+
             _draggable = null;
             _localHitPoint = Vector2.zero;
         }
@@ -84,7 +76,7 @@ namespace Controllers
                 WorldMousePosition = mouseWorldPosition
             };
         }
-        
+
         public void Dispose()
         {
             _draggable = null;

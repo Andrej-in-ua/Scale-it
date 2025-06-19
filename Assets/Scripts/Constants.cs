@@ -8,6 +8,9 @@ public class Constants
     // View
     public const string CardViewPath = "GameTable/CardViewPrefab";
     public const string GridPath = "GameTable/GridPrefab";
+    
+    public const string ConnectionViewPath = "GameTable/ConnectionViewPrefab";
+    public const string ConnectionsContainerPath = "GameTable/ConnectionsContainerPrefab";
 
     // Services
     public const string InputServicePath = "InputService";

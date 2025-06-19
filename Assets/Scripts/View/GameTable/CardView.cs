@@ -11,7 +11,7 @@ namespace View.GameTable
     {
         public TMP_Text Name => GetComponentInChildren<TMP_Text>();
         public SortingGroup SortingGroup => GetComponent<SortingGroup>();
-        
+
         public PlaceableReference PlaceableReference => new PlaceableReference
         {
             Object = this,
