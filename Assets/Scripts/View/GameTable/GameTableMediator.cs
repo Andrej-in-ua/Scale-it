@@ -17,6 +17,7 @@ namespace View.GameTable
         private readonly CardViewPool _cardViewPool;
         private readonly ConnectionFactory _connectionFactory;
         private readonly EnvironmentFactory _environmentFactory;
+        private readonly BuildGridFactory _buildGridFactory;
 
         private bool _isConstructed;
 
@@ -37,21 +38,24 @@ namespace View.GameTable
             GridManager gridManager,
             CardViewPool cardViewPool,
             ConnectionFactory connectionFactory,
-            EnvironmentFactory environmentFactory
+            EnvironmentFactory environmentFactory,
+            BuildGridFactory buildGridFactory
         )
         {
             _gridManager = gridManager;
             _cardViewPool = cardViewPool;
             _connectionFactory = connectionFactory;
             _environmentFactory = environmentFactory;
+            _buildGridFactory = buildGridFactory;
         }
 
-        public void ConstructGameTable()
+        public void ConstructGameTable(Camera camera)
         {
             _grid = _gridManager.Construct();
             _cardViewPool.Construct();
             _connectionsContainer = _connectionFactory.CreateConnectionsContainer();
-            _environmentFactory.Initialize(Camera.main.transform.position, _grid);
+            _environmentFactory.Construct(camera.transform.position, _grid);
+            _buildGridFactory.Construct(_grid, camera);
 
             _isConstructed = true;
 
@@ -91,10 +95,11 @@ namespace View.GameTable
                 // TODO: Relocate
             }
         }
-
-        public void HandleCameraMove(Transform cameraTransform)
+        
+        public void OnCameraMove(Transform cameraPosition)
         {
-            _environmentFactory.UpdateEnvironmentAround(cameraTransform.position, _grid);
+            _environmentFactory.UpdateEnvironmentAround(cameraPosition.position, _grid);
+            _buildGridFactory.DrawGrid();
         }
 
         public void HandleStartDraw(DragContext context)
