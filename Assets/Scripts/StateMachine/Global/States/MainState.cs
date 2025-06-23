@@ -22,7 +22,6 @@ namespace StateMachine.Global.States
         private readonly CameraMover _cameraMover;
         private readonly DragService _dragService;
         private readonly CardDragController _cardDragController;
-        private readonly EnvironmentFactory _environmentFactory;
 
         public MainState(
             StateMachineBase stateMachine,
@@ -31,8 +30,7 @@ namespace StateMachine.Global.States
             InputService inputService,
             CameraMover cameraMover,
             DragService dragService,
-            CardDragController cardDragController,
-            EnvironmentFactory environmentFactory
+            CardDragController cardDragController
         )
         {
             _stateMachine = stateMachine;
@@ -42,7 +40,6 @@ namespace StateMachine.Global.States
             _cameraMover = cameraMover;
             _dragService = dragService;
             _cardDragController = cardDragController;
-            _environmentFactory = environmentFactory;
         }
 
         public override void Enter()
@@ -58,10 +55,10 @@ namespace StateMachine.Global.States
         {
             if (scene.name == SceneName)
             {
-                _gameTableMediator.ConstructGameTable();
-                _uiGameMediator.ConstructUI();
-
                 var camera = Camera.main;
+                
+                _gameTableMediator.ConstructGameTable(camera);
+                _uiGameMediator.ConstructUI();
 
                 _inputService.Construct(camera);
                 _cameraMover.Construct(camera);

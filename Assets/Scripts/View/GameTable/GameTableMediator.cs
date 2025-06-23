@@ -46,12 +46,12 @@ namespace View.GameTable
             _environmentFactory = environmentFactory;
         }
 
-        public void ConstructGameTable()
+        public void ConstructGameTable(Camera camera)
         {
             _grid = _gridManager.Construct();
             _cardViewPool.Construct();
             _connectionsContainer = _connectionFactory.CreateConnectionsContainer();
-            _environmentFactory.Construct(Camera.main.transform.position, _grid);
+            _environmentFactory.Construct(camera.transform.position, _grid);
 
             _isConstructed = true;
 
