@@ -51,7 +51,7 @@ namespace View.GameTable
             _grid = _gridManager.Construct();
             _cardViewPool.Construct();
             _connectionsContainer = _connectionFactory.CreateConnectionsContainer();
-            _environmentFactory.Initialize(Camera.main.transform.position, _grid);
+            _environmentFactory.Construct(Camera.main.transform.position, _grid);
 
             _isConstructed = true;
 

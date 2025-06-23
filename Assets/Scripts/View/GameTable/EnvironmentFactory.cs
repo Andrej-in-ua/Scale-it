@@ -25,7 +25,7 @@ namespace View.GameTable
             _assetProviderService = assetProviderService;
         }
         
-        public void Initialize(Vector3 cameraPosition, Grid grid)
+        public void Construct(Vector3 cameraPosition, Grid grid)
         {
             _container = Object.Instantiate(new GameObject("Environment Container"));
             
