@@ -20,6 +20,7 @@ namespace View.GameTable
         private readonly BuildGridFactory _buildGridFactory;
         private readonly IEnvironmentFactory _environmentFactory;
         private readonly EnvironmentManager _environmentManager;
+        private readonly BuildGridManager _buildGridManager;
 
         private bool _isConstructed;
 
@@ -33,8 +34,10 @@ namespace View.GameTable
         private int _portPriority = 2;
 
         private Transform _connectionsContainer;
-
+        
+        private Camera _camera;
         private Grid _grid;
+        private Mesh _mesh;
 
         public GameTableMediator(
             GridManager gridManager,
@@ -42,7 +45,8 @@ namespace View.GameTable
             ConnectionFactory connectionFactory,
             BuildGridFactory buildGridFactory,
             IEnvironmentFactory environmentFactory,
-            EnvironmentManager environmentManager
+            EnvironmentManager environmentManager,
+            BuildGridManager buildGridManager
         )
         {
             _gridManager = gridManager;
@@ -50,18 +54,24 @@ namespace View.GameTable
             _connectionFactory = connectionFactory;
             _environmentFactory = environmentFactory;
             _buildGridFactory = buildGridFactory;
+            _environmentManager = environmentManager;
+            _buildGridManager = buildGridManager;
         }
 
         public void ConstructGameTable(Camera camera)
         {
+            _camera = camera;
+            
             _grid = _gridManager.Construct();
             _cardViewPool.Construct();
             _connectionsContainer = _connectionFactory.CreateConnectionsContainer();
-            _buildGridFactory.Construct(_grid, camera);
+
+            _mesh = _buildGridFactory.Construct();
+            _buildGridManager.DrawGrid(_grid, _camera, _mesh);
             
             _environmentFactory.LoadAssets();
             _environmentManager.Construct(camera.transform.position, _grid, _environmentFactory);
-
+            
             _isConstructed = true;
 
             int[,] map =
@@ -103,7 +113,7 @@ namespace View.GameTable
         
         public void OnCameraMove(Transform cameraPosition)
         {
-            _buildGridFactory.DrawGrid();
+            _buildGridManager.DrawGrid(_grid, _camera, _mesh);
             _environmentManager.UpdateEnvironmentAround(cameraPosition.position, _grid, _environmentFactory);
         }
 
