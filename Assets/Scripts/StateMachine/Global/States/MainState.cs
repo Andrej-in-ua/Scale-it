@@ -59,7 +59,7 @@ namespace StateMachine.Global.States
                 
                 _gameTableMediator.ConstructGameTable(camera);
                 _uiGameMediator.ConstructUI();
-                
+
                 _inputService.Construct(camera);
                 _cameraMover.Construct(camera);
 
