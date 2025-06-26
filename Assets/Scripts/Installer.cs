@@ -46,7 +46,6 @@ public class Installer : MonoInstaller
         Container.Bind<GridFactory>().AsSingle();
         Container.Bind<GridManager>().AsSingle();
         Container.Bind<ConnectionFactory>().AsSingle();
-        Container.Bind<EnvironmentManager>().AsSingle();
         Container.Bind<IEnvironmentFactory>().To<EnvironmentFactory>().AsSingle();
         Container.Bind<BuildGridFactory>().AsSingle();
         Container.Bind<BuildGridManager>().AsSingle();
