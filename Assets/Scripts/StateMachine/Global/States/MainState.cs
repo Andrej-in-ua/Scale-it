@@ -74,7 +74,7 @@ namespace StateMachine.Global.States
             Application.quitting += Exit;
             SceneManager.sceneLoaded += OnSceneLoaded;
             
-            _cameraMover.OnCameraMove += _gameTableMediator.HandleCameraMove;
+            _cameraMover.OnCameraMove += _gameTableMediator.OnCameraMove;
             
             SubscribeCardDragController();
             SubscribeConnectionDrawing();
@@ -86,13 +86,6 @@ namespace StateMachine.Global.States
             _dragService.OnDrag += _gameTableMediator.HandleDraw;
             _dragService.OnStopDrag += _gameTableMediator.HandleStopDraw;
         } 
-        
-        private void UnsubscribeConnectionDrawing()
-        {
-            _dragService.OnStartDrag -= _gameTableMediator.HandleStartDraw;
-            _dragService.OnDrag -= _gameTableMediator.HandleDraw;
-            _dragService.OnStopDrag -= _gameTableMediator.HandleStopDraw;
-        }
         
         private void SubscribeCardDragController()
         {
@@ -134,10 +127,17 @@ namespace StateMachine.Global.States
             Application.quitting -= Exit;
             SceneManager.sceneLoaded -= OnSceneLoaded;
             
-            _cameraMover.OnCameraMove -= _gameTableMediator.HandleCameraMove;
+            _cameraMover.OnCameraMove -= _gameTableMediator.OnCameraMove;
             
             UnsubscribeCardDagController();
             UnsubscribeConnectionDrawing();
+        }
+        
+        private void UnsubscribeConnectionDrawing()
+        {
+            _dragService.OnStartDrag -= _gameTableMediator.HandleStartDraw;
+            _dragService.OnDrag -= _gameTableMediator.HandleDraw;
+            _dragService.OnStopDrag -= _gameTableMediator.HandleStopDraw;
         }
 
         private void UnsubscribeCardDagController()
