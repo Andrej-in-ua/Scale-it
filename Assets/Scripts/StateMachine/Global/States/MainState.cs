@@ -87,13 +87,6 @@ namespace StateMachine.Global.States
             _dragService.OnStopDrag += _gameTableMediator.HandleStopDraw;
         } 
         
-        private void UnsubscribeConnectionDrawing()
-        {
-            _dragService.OnStartDrag -= _gameTableMediator.HandleStartDraw;
-            _dragService.OnDrag -= _gameTableMediator.HandleDraw;
-            _dragService.OnStopDrag -= _gameTableMediator.HandleStopDraw;
-        }
-        
         private void SubscribeCardDragController()
         {
             // CardDragController relations
@@ -128,14 +121,7 @@ namespace StateMachine.Global.States
             _cardDragController.OnStopDrag += _uiGameMediator.HandleStopDrag;
             _cardDragController.OnRollback += _uiGameMediator.HandleRollback;
         }
-
-        private void SubscribeConnectionDrawing()
-        {
-            _dragService.OnStartDrag += _gameTableMediator.HandleStartDraw;
-            _dragService.OnDrag += _gameTableMediator.HandleDraw;
-            _dragService.OnStopDrag += _gameTableMediator.HandleStopDraw;
-        }
-
+        
         private void Unsubscribe()
         {
             Application.quitting -= Exit;

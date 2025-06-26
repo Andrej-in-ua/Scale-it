@@ -17,7 +17,6 @@ namespace Controllers
 
         private IDraggable _draggable;
         private Vector2 _localHitPoint;
-        private int _priority = 1;
 
         public void HandleMouseEnterInventory(Vector3 mouseWorldPosition)
         {
