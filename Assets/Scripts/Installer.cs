@@ -48,7 +48,6 @@ public class Installer : MonoInstaller
         Container.Bind<ConnectionFactory>().AsSingle();
         Container.Bind<IEnvironmentFactory>().To<EnvironmentFactory>().AsSingle();
         Container.Bind<BuildGridFactory>().AsSingle();
-        Container.Bind<BuildGridManager>().AsSingle();
     }
 
     private void BindServices()
