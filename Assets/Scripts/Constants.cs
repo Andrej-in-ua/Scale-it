@@ -11,6 +11,11 @@ public class Constants
     
     public const string ConnectionViewPath = "GameTable/ConnectionViewPrefab";
     public const string ConnectionsContainerPath = "GameTable/ConnectionsContainerPrefab";
+    
+    // Environment
+    public const string TreeOneViewPath = "GameTable/Environment/TreeOneViewPrefab";
+    public const string TreeTwoViewPath = "GameTable/Environment/TreeTwoViewPrefab";
+    public const string TreeThreeViewPath = "GameTable/Environment/TreeThreeViewPrefab";
 
     // Services
     public const string InputServicePath = "InputService";
@@ -29,5 +34,13 @@ public class Constants
         public const float ZoomStep = 8f;
         public const float ZoomMin = 16f;
         public const float ZoomMax = 128f;
+    }
+
+    public class EnvironmentSettings
+    {
+        public const float Zoom = 200f;
+        public const int ChunkSize = 144;
+        public const int CellStep = 9;
+        public const int ActiveChunkRange = 3;   
     }
 }
