@@ -35,4 +35,12 @@ public class Constants
         public const float ZoomMin = 16f;
         public const float ZoomMax = 128f;
     }
+
+    public class EnvironmentSettings
+    {
+        public const float Zoom = 90f;
+        public const int ChunkSize = 120;
+        public const int CellStep = 10;
+        public const int ActiveChunkRange = 3;   
+    }
 }
