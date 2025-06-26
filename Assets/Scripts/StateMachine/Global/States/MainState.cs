@@ -55,10 +55,10 @@ namespace StateMachine.Global.States
         {
             if (scene.name == SceneName)
             {
-                _gameTableMediator.ConstructGameTable();
-                _uiGameMediator.ConstructUI();
-
                 var camera = Camera.main;
+                
+                _gameTableMediator.ConstructGameTable(camera);
+                _uiGameMediator.ConstructUI();
 
                 _inputService.Construct(camera);
                 _cameraMover.Construct(camera);
@@ -74,10 +74,19 @@ namespace StateMachine.Global.States
             Application.quitting += Exit;
             SceneManager.sceneLoaded += OnSceneLoaded;
             
+            _cameraMover.OnCameraMove += _gameTableMediator.HandleCameraMove;
+            
             SubscribeCardDragController();
             SubscribeConnectionDrawing();
         }
 
+        private void SubscribeConnectionDrawing()
+        {
+            _dragService.OnStartDrag += _gameTableMediator.HandleStartDraw;
+            _dragService.OnDrag += _gameTableMediator.HandleDraw;
+            _dragService.OnStopDrag += _gameTableMediator.HandleStopDraw;
+        } 
+        
         private void SubscribeCardDragController()
         {
             // CardDragController relations
@@ -91,6 +100,7 @@ namespace StateMachine.Global.States
             _gameTableMediator.OnCardDragRollback += _cardDragController.HandleCardDragRollback;
 
             // ... mouse inputs
+            
             _dragService.OnStartDrag += _cardDragController.HandleStartDrag;
             _dragService.OnDrag += _cardDragController.HandleDrag;
             _dragService.OnStopDrag += _cardDragController.HandleStopDrag;
@@ -111,18 +121,13 @@ namespace StateMachine.Global.States
             _cardDragController.OnStopDrag += _uiGameMediator.HandleStopDrag;
             _cardDragController.OnRollback += _uiGameMediator.HandleRollback;
         }
-
-        private void SubscribeConnectionDrawing()
-        {
-            _dragService.OnStartDrag += _gameTableMediator.HandleStartDraw;
-            _dragService.OnDrag += _gameTableMediator.HandleDraw;
-            _dragService.OnStopDrag += _gameTableMediator.HandleStopDraw;
-        }
-
+        
         private void Unsubscribe()
         {
             Application.quitting -= Exit;
             SceneManager.sceneLoaded -= OnSceneLoaded;
+            
+            _cameraMover.OnCameraMove -= _gameTableMediator.HandleCameraMove;
             
             UnsubscribeCardDagController();
             UnsubscribeConnectionDrawing();

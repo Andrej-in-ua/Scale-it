@@ -34,7 +34,6 @@ namespace View.GameTable
             _occupiedShared = new Dictionary<Vector2Int, List<PlaceableReference>>();
             _objectsIndex = new Dictionary<int, List<Vector2Int>>();
 
-
             _em = entityManager;
             _queueEntity = _em.CreateEntityQuery(typeof(GridUpdateQueueTag))
                 .GetSingletonEntity();

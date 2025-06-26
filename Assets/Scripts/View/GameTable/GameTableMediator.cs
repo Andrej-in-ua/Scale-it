@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using Controllers;
 using Services.Input;
 using UI.Game.CardPreviews;
 using Unity.Entities;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace View.GameTable
 {
@@ -17,6 +19,9 @@ namespace View.GameTable
         private readonly GridManager _gridManager;
         private readonly CardViewPool _cardViewPool;
         private readonly ConnectionFactory _connectionFactory;
+        private readonly IEnvironmentFactory _environmentFactory;
+
+        private readonly Dictionary<Vector2Int, GameObject> _generatedChunks = new();
 
         private bool _isConstructed;
 
@@ -27,26 +32,36 @@ namespace View.GameTable
         private CardView _draggableCardView;
         
         private IDraggable _draggablePort;
-        private int _portPriority = 2;
-
         private Transform _connectionsContainer;
+
+        private Transform _environmentContainer;
+        private float _environmentSeed;
 
         public GameTableMediator(
             GridManager gridManager,
             CardViewPool cardViewPool,
-            ConnectionFactory connectionFactory
+            ConnectionFactory connectionFactory,
+            IEnvironmentFactory environmentFactory
         )
         {
             _gridManager = gridManager;
             _cardViewPool = cardViewPool;
             _connectionFactory = connectionFactory;
+            _environmentFactory = environmentFactory;
         }
 
-        public void ConstructGameTable()
+        public void ConstructGameTable(Camera camera)
         {
             _gridManager.Construct(World.DefaultGameObjectInjectionWorld.EntityManager);
             _cardViewPool.Construct();
             _connectionsContainer = _connectionFactory.CreateConnectionsContainer();
+
+            _environmentFactory.LoadAssets();
+            
+            _environmentContainer = new GameObject("Environment Container").transform;
+            _environmentSeed = Random.Range(10_000_000, 99_999_999);
+
+            UpdateEnvironmentAround(camera.transform.position);
 
             _isConstructed = true;
 
@@ -70,6 +85,74 @@ namespace View.GameTable
             }
         }
 
+        private void UpdateEnvironmentAround(Vector3 cameraPosition)
+        {
+            int chunkSize = Constants.EnvironmentSettings.ChunkSize;
+            int activeChunkRange = Constants.EnvironmentSettings.ActiveChunkRange;
+
+            Vector2Int chunkCoords = new(
+                (int)Mathf.Floor(cameraPosition.x / chunkSize),
+                (int)Mathf.Floor(cameraPosition.y / chunkSize)
+            );
+
+            HashSet<Vector2Int> requiredChunks = new();
+
+            for (int dx = -activeChunkRange; dx <= activeChunkRange; dx++)
+            {
+                for (int dy = -activeChunkRange; dy <= activeChunkRange; dy++)
+                {
+                    Vector2Int chunkCoord = chunkCoords + new Vector2Int(dx, dy);
+                    requiredChunks.Add(chunkCoord);
+
+                    if (!_generatedChunks.TryGetValue(chunkCoord, out GameObject chunk))
+                    {
+                        chunk = GenerateChunk(chunkCoord);
+                        _generatedChunks.Add(chunkCoord, chunk);
+                    }
+
+                    chunk.SetActive(true);
+                }
+            }
+
+            foreach (var (coord, chunk) in _generatedChunks)
+            {
+                if (!requiredChunks.Contains(coord))
+                    chunk.SetActive(false);
+            }
+        }
+
+        private GameObject GenerateChunk(Vector2Int chunkCoord)
+        {
+            GameObject chunkRoot = new($"Chunk_{chunkCoord.x}_{chunkCoord.y}");
+            chunkRoot.transform.SetParent(_environmentContainer.transform);
+
+            int chunkSize = Constants.EnvironmentSettings.ChunkSize;
+            int cellStep = Constants.EnvironmentSettings.CellStep;
+            float zoom = Constants.EnvironmentSettings.Zoom;
+
+            int baseX = chunkCoord.x * chunkSize;
+            int baseY = chunkCoord.y * chunkSize;
+
+            for (int x = 0; x < chunkSize; x += cellStep)
+            {
+                for (int y = 0; y < chunkSize; y += cellStep)
+                {
+                    int gridX = baseX + x;
+                    int gridY = baseY + y;
+
+                    Vector3 worldPosition = _gridManager.CellToWorld(new Vector2Int(gridX, gridY));
+                    float noise = Mathf.PerlinNoise(
+                        (gridX + _environmentSeed) / zoom,
+                        (gridY + _environmentSeed) / zoom
+                    );
+
+                    _environmentFactory.CreateEnvironmentObject(noise, worldPosition, chunkRoot.transform);
+                }
+            }
+
+            return chunkRoot;
+        }
+
         public void SnapCardToGridByWorldPosition(CardView cardView, Vector3 position)
         {
             AssertConstructed();
@@ -87,6 +170,11 @@ namespace View.GameTable
             }
         }
 
+        public void HandleCameraMove(Transform cameraTransform)
+        {
+            UpdateEnvironmentAround(cameraTransform.position);
+        }
+
         public void HandleStartDraw(DragContext context)
         {
             if (_draggablePort != null)
@@ -94,7 +182,7 @@ namespace View.GameTable
 
             IDraggable draggable = context.Draggable;
 
-            if (draggable.Priority != _portPriority)
+            if (draggable is not PortView)
                 return;
             
             _connectionFactory.CreateConnectionView(_connectionsContainer);
@@ -107,13 +195,13 @@ namespace View.GameTable
             if (_draggablePort == null) return;
             // pathfinding
         }
-        
+
         public void HandleStopDraw(DragContext context)
         {
             _draggablePort = null;
             // pathfinding
         }
-        
+
         public void HandleStartDrag(CardDragContext context)
         {
             _isDragging = true;
