@@ -32,13 +32,9 @@ namespace View.GameTable
         private CardView _draggableCardView;
         
         private IDraggable _draggablePort;
-        private int _portPriority = 2;
-
         private Transform _connectionsContainer;
+
         private Transform _environmentContainer;
-
-        private Grid _grid;
-
         private float _environmentSeed;
 
         public GameTableMediator(
@@ -56,14 +52,14 @@ namespace View.GameTable
 
         public void ConstructGameTable(Camera camera)
         {
-            _grid = _gridManager.Construct(World.DefaultGameObjectInjectionWorld.EntityManager);
+            _gridManager.Construct(World.DefaultGameObjectInjectionWorld.EntityManager);
             _cardViewPool.Construct();
             _connectionsContainer = _connectionFactory.CreateConnectionsContainer();
 
             _environmentFactory.LoadAssets();
             
             _environmentContainer = new GameObject("Environment Container").transform;
-            _environmentSeed = Random.Range(0, 9999999);
+            _environmentSeed = Random.Range(10_000_000, 99_999_999);
 
             UpdateEnvironmentAround(camera.transform.position);
 
@@ -94,8 +90,10 @@ namespace View.GameTable
             int chunkSize = Constants.EnvironmentSettings.ChunkSize;
             int activeChunkRange = Constants.EnvironmentSettings.ActiveChunkRange;
 
-            Vector3Int cellPos = _grid.WorldToCell(cameraPosition);
-            Vector2Int centerChunk = new(cellPos.x / chunkSize, cellPos.y / chunkSize);
+            Vector2Int chunkCoords = new(
+                (int)Mathf.Floor(cameraPosition.x / chunkSize),
+                (int)Mathf.Floor(cameraPosition.y / chunkSize)
+            );
 
             HashSet<Vector2Int> requiredChunks = new();
 
@@ -103,7 +101,7 @@ namespace View.GameTable
             {
                 for (int dy = -activeChunkRange; dy <= activeChunkRange; dy++)
                 {
-                    Vector2Int chunkCoord = centerChunk + new Vector2Int(dx, dy);
+                    Vector2Int chunkCoord = chunkCoords + new Vector2Int(dx, dy);
                     requiredChunks.Add(chunkCoord);
 
                     if (!_generatedChunks.TryGetValue(chunkCoord, out GameObject chunk))
@@ -139,12 +137,14 @@ namespace View.GameTable
             {
                 for (int y = 0; y < chunkSize; y += cellStep)
                 {
-                    int worldX = baseX + x;
-                    int worldY = baseY + y;
+                    int gridX = baseX + x;
+                    int gridY = baseY + y;
 
-                    Vector3 worldPosition = _grid.CellToWorld(new Vector3Int(worldX, worldY, 0)) + _grid.cellSize / 2f;
-                    float noise = Mathf.PerlinNoise((worldX + _environmentSeed) / zoom,
-                        (worldY + _environmentSeed) / zoom);
+                    Vector3 worldPosition = _gridManager.CellToWorld(new Vector2Int(gridX, gridY));
+                    float noise = Mathf.PerlinNoise(
+                        (gridX + _environmentSeed) / zoom,
+                        (gridY + _environmentSeed) / zoom
+                    );
 
                     _environmentFactory.CreateEnvironmentObject(noise, worldPosition, chunkRoot.transform);
                 }
@@ -182,7 +182,7 @@ namespace View.GameTable
 
             IDraggable draggable = context.Draggable;
 
-            if (draggable.Priority != _portPriority)
+            if (draggable is not PortView)
                 return;
             
             _connectionFactory.CreateConnectionView(_connectionsContainer);

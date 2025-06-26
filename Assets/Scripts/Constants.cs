@@ -38,9 +38,9 @@ public class Constants
 
     public class EnvironmentSettings
     {
-        public const float Zoom = 90f;
-        public const int ChunkSize = 120;
-        public const int CellStep = 10;
+        public const float Zoom = 200f;
+        public const int ChunkSize = 144;
+        public const int CellStep = 9;
         public const int ActiveChunkRange = 3;   
     }
 }

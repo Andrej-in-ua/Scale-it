@@ -79,7 +79,6 @@ namespace Services.Input
 
             OnStopDrag.Invoke(CreateDragContext(mouseContext));
             _draggable = null;
-
             _localHitPoint = Vector2.zero;
         }
 

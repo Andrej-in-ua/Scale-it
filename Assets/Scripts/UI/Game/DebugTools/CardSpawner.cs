@@ -12,7 +12,6 @@ namespace UI.Game.DebugTools
 
         public void SpawnCard()
         {
-            Debug.Log("spawned");
             int cardId = _IDCardDropdown.value;
             OnCardSpawnRequested?.Invoke(cardId);
         }

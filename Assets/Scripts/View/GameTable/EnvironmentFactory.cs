@@ -30,9 +30,9 @@ namespace View.GameTable
 
         private GameObject GetPrefabByNoise(float noise)
         {
-            if (noise > 0.75f) return _treeThree;
-            if (noise > 0.55f) return _treeTwo;
-            if (noise > 0.40f) return _treeOne;
+            if (noise > 0.85f) return _treeThree;
+            if (noise > 0.75f) return _treeTwo;
+            if (noise > 0.70f) return _treeOne;
             return null;
         }
     }

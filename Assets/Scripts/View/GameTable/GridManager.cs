@@ -26,7 +26,7 @@ namespace View.GameTable
             _gridFactory = gridFactory;
         }
 
-        public Grid Construct(EntityManager entityManager)
+        public void Construct(EntityManager entityManager)
         {
             _grid = _gridFactory.Create();
 
@@ -37,8 +37,6 @@ namespace View.GameTable
             _em = entityManager;
             _queueEntity = _em.CreateEntityQuery(typeof(GridUpdateQueueTag))
                 .GetSingletonEntity();
-            
-            return _grid;
         }
 
         public Vector3? PlaceOnNearestAvailablePosition(
