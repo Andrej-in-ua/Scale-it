@@ -39,7 +39,7 @@ namespace ECS.Systems
         public void OnCreate(ref SystemState state)
         {
             _costMap = new NativeParallelHashMap<int2, half>(1024, Allocator.Persistent);
-
+            
             _queueSingleton = state.EntityManager.CreateEntity(
                 typeof(GridUpdateQueueTag),
                 typeof(GridUpdate));

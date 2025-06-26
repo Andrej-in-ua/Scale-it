@@ -18,10 +18,8 @@ namespace Services.Input
 
         private IDraggable _draggable;
         private Vector2 _localHitPoint;
-        
+
         private Vector3 _dragStartPosition;
-        private float _pathRequestCooldown = 0.1f;
-        private float _lastPathRequestTime;
         private Entity _activePathRequestEntity;
         private EntityManager _entityManager;
 
@@ -43,13 +41,12 @@ namespace Services.Input
         {
             if (_draggable != null || OnStartDrag == null) return;
 
-            // ReSharper disable once Unity.PreferNonAllocApi
             var hits = Physics2D.GetRayIntersectionAll(mouseContext.GetMouseRay(), Mathf.Infinity);
 
             foreach (var hit in hits)
             {
                 IDraggable draggable = hit.collider?.GetComponent<IDraggable>();
-                
+
                 if (draggable == null) continue;
 
                 if (_draggable == null || draggable.Priority > _draggable.Priority)
@@ -59,18 +56,10 @@ namespace Services.Input
                 }
             }
 
-            _dragStartPosition = new Vector2(mouseContext.GetMouseWorldPosition().x, mouseContext.GetMouseWorldPosition().y);
-            
-            var startCellPosition = _gridManager.WorldToCell(_dragStartPosition);
-            var endCellPosition = _gridManager.WorldToCell(new Vector2(mouseContext.GetMouseWorldPosition().x, mouseContext.GetMouseWorldPosition().y));
-            
-            _activePathRequestEntity  = _entityManager.CreateEntity();
-            _entityManager.AddComponentData(_activePathRequestEntity, new PathRequest
-            {
-                Start = new int2(startCellPosition.x, startCellPosition.y),
-                End = new int2(endCellPosition.x, endCellPosition.y)
-            });
-            _entityManager.AddBuffer<PathResult>(_activePathRequestEntity);
+            _dragStartPosition = mouseContext.GetMouseWorldPosition();
+
+            _activePathRequestEntity = _entityManager.CreateEntity();
+            _entityManager.AddBuffer<PathResult>(_activePathRequestEntity); 
 
             if (_draggable != null)
                 OnStartDrag.Invoke(CreateDragContext(mouseContext));
@@ -79,21 +68,26 @@ namespace Services.Input
         private void HandleMouseMove(MouseContext mouseContext)
         {
             if (_draggable == null || OnDrag == null) return;
+
+             var startCell = _gridManager.WorldToCell(_dragStartPosition);
+             var endCell = _gridManager.WorldToCell(mouseContext.GetMouseWorldPosition());
             
-            if (Time.time - _lastPathRequestTime >= _pathRequestCooldown && _entityManager.HasComponent<PathRequest>(_activePathRequestEntity))
-            {
-                _lastPathRequestTime = Time.time;
-                
-                var startCellPosition = _gridManager.WorldToCell(_dragStartPosition);
-                var endCellPosition = _gridManager.WorldToCell(new Vector2(mouseContext.GetMouseWorldPosition().x, mouseContext.GetMouseWorldPosition().y));
+             if (!startCell.Equals(endCell))
+             {
+                 var request = new PathRequest
+                 {
+                     Start = new int2(startCell.x, startCell.y),
+                     End = new int2(endCell.x, endCell.y)
+                 };
+                 
+                 if (!_entityManager.HasComponent<PathRequest>(_activePathRequestEntity))
+                     _entityManager.AddComponentData(_activePathRequestEntity, request);
+                 else
+                     _entityManager.SetComponentData(_activePathRequestEntity, request);
             
-                _entityManager.SetComponentData(_activePathRequestEntity, new PathRequest
-                {
-                    Start = new int2(startCellPosition.x, startCellPosition.y),
-                    End = new int2(endCellPosition.x, endCellPosition.y)
-                });
-                _entityManager.AddBuffer<PathResult>(_activePathRequestEntity);
-            }
+                 var buffer = _entityManager.GetBuffer<PathResult>(_activePathRequestEntity);
+                 buffer.Clear();
+             }
 
             OnDrag.Invoke(CreateDragContext(mouseContext));
         }
@@ -104,7 +98,7 @@ namespace Services.Input
 
             if (_entityManager.Exists(_activePathRequestEntity))
                 _entityManager.DestroyEntity(_activePathRequestEntity);
-            
+
             OnStopDrag.Invoke(CreateDragContext(mouseContext));
             _draggable = null;
             _localHitPoint = Vector2.zero;
