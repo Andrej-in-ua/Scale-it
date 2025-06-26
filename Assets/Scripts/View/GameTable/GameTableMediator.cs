@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Controllers;
 using Services.Input;
 using UI.Game.CardPreviews;
+using Unity.Entities;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -29,15 +30,15 @@ namespace View.GameTable
         private CardView _originalCardView;
         private CardView _createdCardView;
         private CardView _draggableCardView;
-
+        
         private IDraggable _draggablePort;
+        private int _portPriority = 2;
 
         private Transform _connectionsContainer;
         private Transform _environmentContainer;
 
         private Grid _grid;
 
-        private int _portPriority = 2;
         private float _environmentSeed;
 
         public GameTableMediator(
@@ -55,7 +56,7 @@ namespace View.GameTable
 
         public void ConstructGameTable(Camera camera)
         {
-            _grid = _gridManager.Construct();
+            _grid = _gridManager.Construct(World.DefaultGameObjectInjectionWorld.EntityManager);
             _cardViewPool.Construct();
             _connectionsContainer = _connectionFactory.CreateConnectionsContainer();
 
@@ -179,11 +180,11 @@ namespace View.GameTable
             if (_draggablePort != null)
                 return;
 
-            IDraggable draggable = context.Draggable.Value.Item1;
+            IDraggable draggable = context.Draggable;
 
             if (draggable.Priority != _portPriority)
                 return;
-
+            
             _connectionFactory.CreateConnectionView(_connectionsContainer);
 
             _draggablePort = draggable;

@@ -36,13 +36,8 @@ namespace Controllers
             if (_draggable != null || OnStartDrag == null)
                 return;
 
-            var (draggable, localHitPoint) = context.Draggable.Value;
-
-            if (draggable.Priority != _priority)
-                return;
-
-            _draggable = draggable;
-            _localHitPoint = localHitPoint;
+            _draggable = context.Draggable;
+            _localHitPoint = context.LocalHitPoint;
 
             OnStartDrag.Invoke(CreateCardDragContext(context.MouseWorldPosition));
         }

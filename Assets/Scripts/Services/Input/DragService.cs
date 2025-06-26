@@ -11,7 +11,8 @@ namespace Services.Input
 
         private readonly InputService _inputService;
 
-        private (IDraggable element, Vector2 dragOffset)? _draggable;
+        private IDraggable _draggable;
+        private Vector2 _localHitPoint;
 
         public DragService(InputService inputService)
         {
@@ -38,11 +39,14 @@ namespace Services.Input
                 
                 if (draggable == null) continue;
 
-                Vector3 offset = hit.point - (Vector2)hit.transform.position;
-
-                if (_draggable == null || draggable.Priority > _draggable.Value.element.Priority)
-                    _draggable = (draggable, offset);
+                if (_draggable == null || draggable.Priority > _draggable.Priority)
+                {
+                    _draggable = draggable;
+                    _localHitPoint = hit.point - (Vector2)hit.transform.position;
+                }
             }
+            
+            // _dragStartPosition = new Vector2(mouseContext.GetMouseWorldPosition().x, mouseContext.GetMouseWorldPosition().y);
 
             if (_draggable != null)
                 OnStartDrag.Invoke(CreateDragContext(mouseContext));
@@ -51,6 +55,20 @@ namespace Services.Input
         private void HandleMouseMove(MouseContext mouseContext)
         {
             if (_draggable == null || OnDrag == null) return;
+
+            //Example of pathfinder request
+            // var startCellPosition = _gridManager.WorldToCell(_dragStartPosition);
+            // var endCellPosition = _gridManager.WorldToCell(new Vector2(mouseContext.GetMouseWorldPosition().x, mouseContext.GetMouseWorldPosition().y));
+            
+            // var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+            // var entity = entityManager.CreateEntity();
+            // entityManager.AddComponentData(entity, new PathRequest
+            // {
+            //     Start = new int2(startCellPosition.x, startCellPosition.y),
+            //     End = new int2(endCellPosition.x, endCellPosition.y)
+            // });
+            // entityManager.AddBuffer<PathResult>(entity);
+            //
 
             OnDrag.Invoke(CreateDragContext(mouseContext));
         }
@@ -61,6 +79,8 @@ namespace Services.Input
 
             OnStopDrag.Invoke(CreateDragContext(mouseContext));
             _draggable = null;
+
+            _localHitPoint = Vector2.zero;
         }
 
         private DragContext CreateDragContext(MouseContext mouseContext)
@@ -68,6 +88,7 @@ namespace Services.Input
             return new DragContext
             {
                 Draggable = _draggable,
+                LocalHitPoint = _localHitPoint,
                 MouseWorldPosition = mouseContext.GetMouseWorldPosition()
             };
         }

@@ -4,7 +4,8 @@ namespace Services.Input
 {
     public record DragContext
     {
-        public (IDraggable, Vector2)? Draggable;
+        public IDraggable Draggable;
+        public Vector2 LocalHitPoint;
         public Vector3 MouseWorldPosition;
     }
 }
