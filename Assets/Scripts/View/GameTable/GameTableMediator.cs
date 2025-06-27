@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Controllers;
 using Services.Input;
+using TMPro;
 using UI.Game.CardPreviews;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -35,12 +36,13 @@ namespace View.GameTable
         private IDraggable _draggablePort;
 
         private Transform _connectionsContainer;
-        
+
         private Camera _camera;
         private Transform _environmentContainer;
 
         private Grid _grid;
         private Mesh _mesh;
+        private GameObject _buildGrid;
 
         private int _portPriority = 2;
         private float _environmentSeed;
@@ -63,19 +65,17 @@ namespace View.GameTable
         public void ConstructGameTable(Camera camera)
         {
             _camera = camera;
-            
+
             _grid = _gridManager.Construct();
             _cardViewPool.Construct();
             _connectionsContainer = _connectionFactory.CreateConnectionsContainer();
 
-            _mesh = _buildGridFactory.Construct();
+            (_mesh, _buildGrid) = _buildGridFactory.Construct();
             DrawGrid();
-            
+
             _environmentFactory.LoadAssets();
-            
             _environmentContainer = new GameObject("Environment Container").transform;
             _environmentSeed = Random.Range(0, 9999999);
-
             UpdateEnvironmentAround(_camera.transform.position);
 
             _isConstructed = true;
@@ -163,14 +163,15 @@ namespace View.GameTable
 
             return chunkRoot;
         }
-        
-           private void DrawGrid()
+
+        private void DrawGrid()
         {
             if (!_grid) return;
 
             _mesh.Clear();
 
-            float zoomFactor = Mathf.InverseLerp(Constants.CameraSettings.ZoomMin, Constants.CameraSettings.ZoomMax, _camera.orthographicSize);
+            float zoomFactor = Mathf.InverseLerp(Constants.CameraSettings.ZoomMin, Constants.CameraSettings.ZoomMax,
+                _camera.orthographicSize);
 
             float visualCellSize = _grid.cellSize.x * (zoomFactor < 0.15f ? 1 : zoomFactor < 0.6f ? 10 : 50);
 
@@ -229,7 +230,21 @@ namespace View.GameTable
                 // TODO: Relocate
             }
         }
-        
+
+        public void GridVisibility(TMP_Text buttonText)
+        {
+            if (_buildGrid.activeSelf)
+            {
+                _buildGrid.SetActive(false);
+                buttonText.text = "Off";
+            }
+            else
+            {
+                _buildGrid.SetActive(true);
+                buttonText.text = "On";
+            }
+        }
+
         public void OnCameraMove(Transform cameraPosition)
         {
             DrawGrid();

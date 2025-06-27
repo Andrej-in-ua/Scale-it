@@ -4,6 +4,7 @@ public class Constants
     public const string InventoryPath = "Inventory";
     public const string UICardPreviewPath = "UICardPreviewPrefab";
     public const string CardSpawnerPath = "CardSpawner";
+    public const string GridVisibilityButtonPath = "GridVisibilityButtonPrefab";
     
     // View
     public const string CardViewPath = "GameTable/CardViewPrefab";

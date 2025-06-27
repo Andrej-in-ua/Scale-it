@@ -75,6 +75,7 @@ namespace StateMachine.Global.States
             SceneManager.sceneLoaded += OnSceneLoaded;
             
             _cameraMover.OnCameraMove += _gameTableMediator.OnCameraMove;
+            _uiGameMediator.OnGridVisibilityButtonClick += _gameTableMediator.GridVisibility;
             
             SubscribeCardDragController();
             SubscribeConnectionDrawing();

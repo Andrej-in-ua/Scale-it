@@ -16,13 +16,13 @@ namespace View.GameTable
             _assetProviderService = assetProviderService;
         }
         
-        public Mesh Construct()
+        public (Mesh, GameObject) Construct()
         {
             _mesh = new Mesh();
             _gridPrefab = Object.Instantiate(_assetProviderService.LoadAssetFromResources<GameObject>(Constants.BuildGridPath));
             _gridPrefab.gameObject.GetComponent<MeshFilter>().mesh = _mesh;
             
-            return _mesh;
+            return (_mesh, _gridPrefab);
         }
     }
 }
