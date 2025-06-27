@@ -120,10 +120,11 @@ namespace ECS.Systems
                 }
                 else
                 {
-                    UnityEngine.Debug.Log($"[AStar] Iterations {iterations}");
+                    //UnityEngine.Debug.Log($"[AStar] Iterations {iterations}");
 
                     for (int i = path.Length - 1; i >= 0; i--)
                     {
+                        //UnityEngine.Debug.Log($"[AStar] Found path {path[i]}");
                         Ecb.AppendToBuffer(sortKey, entity, new PathResult { Cell = path[i] });
                     }
                 }
