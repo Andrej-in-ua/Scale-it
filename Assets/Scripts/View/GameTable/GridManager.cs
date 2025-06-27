@@ -1,5 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using ECS.Systems;
+using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace View.GameTable
@@ -15,12 +18,15 @@ namespace View.GameTable
 
         private Dictionary<int, List<Vector2Int>> _objectsIndex;
 
+        private EntityManager _em;
+        private Entity _queueEntity;
+
         public GridManager(GridFactory gridFactory)
         {
             _gridFactory = gridFactory;
         }
 
-        public Grid Construct()
+        public void Construct(EntityManager entityManager)
         {
             _grid = _gridFactory.Create();
 
@@ -28,7 +34,9 @@ namespace View.GameTable
             _occupiedShared = new Dictionary<Vector2Int, List<PlaceableReference>>();
             _objectsIndex = new Dictionary<int, List<Vector2Int>>();
 
-            return _grid;
+            _em = entityManager;
+            _queueEntity = _em.CreateEntityQuery(typeof(GridUpdateQueueTag))
+                .GetSingletonEntity();
         }
 
         public Vector3? PlaceOnNearestAvailablePosition(
@@ -152,6 +160,7 @@ namespace View.GameTable
                     _occupiedShared[cell] = new List<PlaceableReference>();
 
                 _occupiedShared[cell].Add(reference);
+                Enqueue(cell, CellCost(_occupiedShared[cell].Count));
             }
 
             return null;
@@ -166,6 +175,7 @@ namespace View.GameTable
             {
                 _objectsIndex[reference.Index].Add(cell);
                 _occupiedExclusive[cell] = reference;
+                Enqueue(cell, (half)1f);
 
                 if (_occupiedShared.ContainsKey(cell))
                 {
@@ -187,7 +197,11 @@ namespace View.GameTable
 
             foreach (var cell in objectCells)
             {
-                _occupiedExclusive.Remove(cell);
+                if (_occupiedExclusive.ContainsKey(cell))
+                {
+                    _occupiedExclusive.Remove(cell);
+                    Enqueue(cell, (half)0);
+                }
 
                 if (_occupiedShared.ContainsKey(cell))
                 {
@@ -196,12 +210,53 @@ namespace View.GameTable
                         if (reference.Object.Equals(sharedReference.Object))
                         {
                             _occupiedShared[cell].Remove(sharedReference);
+                            if (_occupiedShared[cell].Count == 0)
+                            {
+                                _occupiedShared.Remove(cell);
+                                Enqueue(cell, (half)0);
+                            }
+                            else
+                            {
+                                Enqueue(cell, CellCost(_occupiedShared[cell].Count));
+                            }
                         }
                     }
                 }
             }
 
             _objectsIndex.Remove(reference.Index);
+        }
+
+        private static half CellCost(int sharedCount)
+        {
+            return (half)(sharedCount switch
+            {
+                <= 0 => 0f,
+                1 => 0.4f,
+                > 5 => 0.9f,
+                _ => 0.4f + ((sharedCount - 1) * 0.1f)
+            });
+        }
+
+        private void Enqueue(Vector2Int cell, half cost)
+        {
+            // Important: this code is always executed **on the main thread**,
+            // so direct access to DynamicBuffer is safe.
+            var buffer = _em.GetBuffer<GridUpdate>(_queueEntity);
+
+            buffer.Add(
+                new GridUpdate
+                {
+                    Cell = new int2(cell.x, cell.y),
+                    Cost = cost
+                }
+            );
+        }
+        
+        public Vector2Int WorldToCell(Vector3 worldPosition)
+        {
+            AssertConstructed();
+            return (Vector2Int)_grid.WorldToCell(worldPosition);
         }
 
         public Vector2Int WorldToCell(Vector3 worldPosition, PlaceableReference reference)

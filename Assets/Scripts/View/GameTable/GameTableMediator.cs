@@ -4,6 +4,7 @@ using Controllers;
 using Services.Input;
 using TMPro;
 using UI.Game.CardPreviews;
+using Unity.Entities;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -32,19 +33,16 @@ namespace View.GameTable
         private CardView _originalCardView;
         private CardView _createdCardView;
         private CardView _draggableCardView;
-
+        
         private IDraggable _draggablePort;
-
         private Transform _connectionsContainer;
 
         private Camera _camera;
         private Transform _environmentContainer;
 
-        private Grid _grid;
         private Mesh _mesh;
         private GameObject _buildGrid;
-
-        private int _portPriority = 2;
+        
         private float _environmentSeed;
 
         public GameTableMediator(
@@ -66,7 +64,7 @@ namespace View.GameTable
         {
             _camera = camera;
 
-            _grid = _gridManager.Construct();
+            _gridManager.Construct(World.DefaultGameObjectInjectionWorld.EntityManager);
             _cardViewPool.Construct();
             _connectionsContainer = _connectionFactory.CreateConnectionsContainer();
 
@@ -75,8 +73,8 @@ namespace View.GameTable
 
             _environmentFactory.LoadAssets();
             _environmentContainer = new GameObject("Environment Container").transform;
-            _environmentSeed = Random.Range(0, 9999999);
-            UpdateEnvironmentAround(_camera.transform.position);
+            _environmentSeed = Random.Range(10_000_000, 99_999_999);
+            UpdateEnvironmentAround(camera.transform.position);
 
             _isConstructed = true;
 
@@ -105,8 +103,10 @@ namespace View.GameTable
             int chunkSize = Constants.EnvironmentSettings.ChunkSize;
             int activeChunkRange = Constants.EnvironmentSettings.ActiveChunkRange;
 
-            Vector3Int cellPos = _grid.WorldToCell(cameraPosition);
-            Vector2Int centerChunk = new(cellPos.x / chunkSize, cellPos.y / chunkSize);
+            Vector2Int chunkCoords = new(
+                (int)Mathf.Floor(cameraPosition.x / chunkSize),
+                (int)Mathf.Floor(cameraPosition.y / chunkSize)
+            );
 
             HashSet<Vector2Int> requiredChunks = new();
 
@@ -114,7 +114,7 @@ namespace View.GameTable
             {
                 for (int dy = -activeChunkRange; dy <= activeChunkRange; dy++)
                 {
-                    Vector2Int chunkCoord = centerChunk + new Vector2Int(dx, dy);
+                    Vector2Int chunkCoord = chunkCoords + new Vector2Int(dx, dy);
                     requiredChunks.Add(chunkCoord);
 
                     if (!_generatedChunks.TryGetValue(chunkCoord, out GameObject chunk))
@@ -150,12 +150,14 @@ namespace View.GameTable
             {
                 for (int y = 0; y < chunkSize; y += cellStep)
                 {
-                    int worldX = baseX + x;
-                    int worldY = baseY + y;
+                    int gridX = baseX + x;
+                    int gridY = baseY + y;
 
-                    Vector3 worldPosition = _grid.CellToWorld(new Vector3Int(worldX, worldY, 0)) + _grid.cellSize / 2f;
-                    float noise = Mathf.PerlinNoise((worldX + _environmentSeed) / zoom,
-                        (worldY + _environmentSeed) / zoom);
+                    Vector3 worldPosition = _gridManager.CellToWorld(new Vector2Int(gridX, gridY));
+                    float noise = Mathf.PerlinNoise(
+                        (gridX + _environmentSeed) / zoom,
+                        (gridY + _environmentSeed) / zoom
+                    );
 
                     _environmentFactory.CreateEnvironmentObject(noise, worldPosition, chunkRoot.transform);
                 }
@@ -166,20 +168,18 @@ namespace View.GameTable
 
         private void DrawGrid()
         {
-            if (!_grid) return;
-
             _mesh.Clear();
 
             float zoomFactor = Mathf.InverseLerp(Constants.CameraSettings.ZoomMin, Constants.CameraSettings.ZoomMax,
                 _camera.orthographicSize);
 
-            float visualCellSize = _grid.cellSize.x * (zoomFactor < 0.15f ? 1 : zoomFactor < 0.6f ? 10 : 50);
+            float visualCellSize = 1 * (zoomFactor < 0.15f ? 1 : zoomFactor < 0.6f ? 10 : 50);
 
             float cameraWidth = _camera.orthographicSize * _camera.aspect * 2f;
             float cameraHeight = _camera.orthographicSize * 2;
 
             Vector3 cameraPosition = _camera.transform.position;
-            Vector3 gridOrigin = _grid.transform.position;
+            Vector3 gridOrigin = _camera.transform.position;
 
             float left = cameraPosition.x - cameraWidth / 2;
             float right = cameraPosition.x + cameraWidth / 2;
@@ -256,11 +256,11 @@ namespace View.GameTable
             if (_draggablePort != null)
                 return;
 
-            IDraggable draggable = context.Draggable.Value.Item1;
+            IDraggable draggable = context.Draggable;
 
-            if (draggable.Priority != _portPriority)
+            if (draggable is not PortView)
                 return;
-
+            
             _connectionFactory.CreateConnectionView(_connectionsContainer);
 
             _draggablePort = draggable;

@@ -122,7 +122,7 @@ namespace StateMachine.Global.States
             _cardDragController.OnStopDrag += _uiGameMediator.HandleStopDrag;
             _cardDragController.OnRollback += _uiGameMediator.HandleRollback;
         }
-
+        
         private void Unsubscribe()
         {
             Application.quitting -= Exit;
@@ -172,6 +172,13 @@ namespace StateMachine.Global.States
             _cardDragController.OnChangeToView -= _uiGameMediator.HandleChangeToView;
             _cardDragController.OnStopDrag -= _uiGameMediator.HandleStopDrag;
             _cardDragController.OnRollback -= _uiGameMediator.HandleRollback;
+        }
+
+        private void UnsubscribeConnectionDrawing()
+        {
+            _dragService.OnStartDrag -= _gameTableMediator.HandleStartDraw;
+            _dragService.OnDrag -= _gameTableMediator.HandleDraw;
+            _dragService.OnStopDrag -= _gameTableMediator.HandleStopDraw;
         }
 
         public override void Exit()
