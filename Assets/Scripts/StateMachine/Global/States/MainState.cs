@@ -133,13 +133,6 @@ namespace StateMachine.Global.States
             UnsubscribeCardDagController();
             UnsubscribeConnectionDrawing();
         }
-        
-        private void UnsubscribeConnectionDrawing()
-        {
-            _dragService.OnStartDrag -= _gameTableMediator.HandleStartDraw;
-            _dragService.OnDrag -= _gameTableMediator.HandleDraw;
-            _dragService.OnStopDrag -= _gameTableMediator.HandleStopDraw;
-        }
 
         private void UnsubscribeCardDagController()
         {

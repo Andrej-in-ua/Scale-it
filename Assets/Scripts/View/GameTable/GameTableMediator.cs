@@ -38,6 +38,7 @@ namespace View.GameTable
         private Transform _connectionsContainer;
 
         private Camera _camera;
+        
         private Transform _environmentContainer;
 
         private Mesh _mesh;
