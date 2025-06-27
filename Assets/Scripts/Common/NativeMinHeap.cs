@@ -1,7 +1,6 @@
 ﻿using Unity.Collections;
-using Unity.Mathematics;
 
-namespace ECS
+namespace Common
 {
     public struct NativeMinHeap<T> where T : unmanaged
     {

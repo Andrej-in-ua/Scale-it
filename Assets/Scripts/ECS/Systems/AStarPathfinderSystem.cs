@@ -1,4 +1,5 @@
 ﻿using System;
+using Common;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -42,15 +43,15 @@ namespace ECS.Systems
 
             public void Execute(Entity entity, [EntityIndexInQuery] int sortKey, in PathRequest request)
             {
-                int startCost = GridCosts.TryGetValue(request.Start, out var sCost) ? (int)sCost : 0;
-                int endCost = GridCosts.TryGetValue(request.End, out var eCost) ? (int)eCost : 0;
-
-                if (startCost < 0 || endCost < 0)
-                {
-                    UnityEngine.Debug.LogWarning($"[AStar] Start or End not walkable (cost < 0): {request.Start} -> {request.End}");
-                    Ecb.RemoveComponent<PathRequest>(sortKey, entity);
-                    return;
-                }
+                // int startCost = GridCosts.TryGetValue(request.Start, out var sCost) ? (int)sCost : 0;
+                // int endCost = GridCosts.TryGetValue(request.End, out var eCost) ? (int)eCost : 0;
+                //
+                // if (startCost < 0 || endCost < 0)
+                // {
+                //     UnityEngine.Debug.LogWarning($"[AStar] Start or End not walkable (cost < 0): {request.Start} -> {request.End}");
+                //     Ecb.RemoveComponent<PathRequest>(sortKey, entity);
+                //     return;
+                // }
 
                 var openSet = new NativeMinHeap<PathNode>(128, Allocator.Temp);
                 var gScore = new NativeParallelHashMap<PathNode, float>(128, Allocator.Temp);
@@ -65,13 +66,17 @@ namespace ECS.Systems
                     new int2(0, -1)
                 };
 
+                // Stopwatch stopwatch = Stopwatch.StartNew();
+                // var request = new PathRequest { Start = new int2(0,0), End = new int2(100,100) }; // Ensure request is valid
+                
                 var start = new PathNode { Pos = request.Start, Dir = int2.zero };
                 gScore[start] = 0;
                 openSet.Enqueue(start, Heuristic(request.Start, request.End));
 
+                int iterationLimit = 10_000_000;
                 var iterations = 0;
 
-                while (!openSet.IsEmpty)
+                while (!openSet.IsEmpty && iterations < iterationLimit)
                 {
                     iterations++;
                     var current = openSet.Dequeue();
@@ -96,10 +101,15 @@ namespace ECS.Systems
                             ? rawCost
                             : 0; // default walkable
 
-                        if (cellCost < 0)
-                            continue; // not walkable
-
                         var neighbor = new PathNode { Pos = neighborPos, Dir = dir };
+                        if (neighborPos.Equals(request.End))
+                        {
+                            openSet.Enqueue(neighbor, 0);
+                            break;
+                        }
+
+                        // if (cellCost >= 1)
+                        //     continue; // not walkable
 
                         float turnCost = (current.Dir.Equals(int2.zero) || current.Dir.Equals(dir)) ? 0 : TurnPenalty;
                         float tentativeG = gScore[current] + MoveCost + turnCost + cellCost;
@@ -120,14 +130,17 @@ namespace ECS.Systems
                 }
                 else
                 {
-                    //UnityEngine.Debug.Log($"[AStar] Iterations {iterations}");
+                    // UnityEngine.Debug.Log($"[AStar] Iterations {iterations}");
 
                     for (int i = path.Length - 1; i >= 0; i--)
                     {
-                        //UnityEngine.Debug.Log($"[AStar] Found path {path[i]}");
+                        // UnityEngine.Debug.Log($"[AStar] Found path {path[i]}");
                         Ecb.AppendToBuffer(sortKey, entity, new PathResult { Cell = path[i] });
                     }
                 }
+                
+                // stopwatch.Stop();
+                // UnityEngine.Debug.Log($"Find path time: {stopwatch.ElapsedMilliseconds} мс | {stopwatch.ElapsedTicks} ticks");
 
                 path.Dispose();
                 openSet.Dispose();
@@ -139,7 +152,7 @@ namespace ECS.Systems
 
             private static float Heuristic(int2 a, int2 b)
             {
-                return math.abs(a.x - b.x) + math.abs(a.y - b.y); // Manhattan distance
+                return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
             }
 
             private struct PathNode : IEquatable<PathNode>
