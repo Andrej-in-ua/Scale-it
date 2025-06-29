@@ -33,17 +33,17 @@ namespace View.GameTable
         private CardView _originalCardView;
         private CardView _createdCardView;
         private CardView _draggableCardView;
-        
+
         private IDraggable _draggablePort;
         private Transform _connectionsContainer;
 
         private Camera _camera;
-        
+
         private Transform _environmentContainer;
 
         private Mesh _mesh;
         private GameObject _buildGrid;
-        
+
         private float _environmentSeed;
 
         public GameTableMediator(
@@ -180,17 +180,16 @@ namespace View.GameTable
             float cameraHeight = _camera.orthographicSize * 2;
 
             Vector3 cameraPosition = _camera.transform.position;
-            Vector3 gridOrigin = _camera.transform.position;
 
             float left = cameraPosition.x - cameraWidth / 2;
             float right = cameraPosition.x + cameraWidth / 2;
             float bottom = cameraPosition.y - cameraHeight / 2;
             float top = cameraPosition.y + cameraHeight / 2;
 
-            float startX = Mathf.Floor((left - gridOrigin.x) / visualCellSize) * visualCellSize + gridOrigin.x;
-            float endX = Mathf.Ceil((right - gridOrigin.x) / visualCellSize) * visualCellSize + gridOrigin.x;
-            float startY = Mathf.Floor((bottom - gridOrigin.y) / visualCellSize) * visualCellSize + gridOrigin.y;
-            float endY = Mathf.Ceil((top - gridOrigin.y) / visualCellSize) * visualCellSize + gridOrigin.y;
+            float startX = Mathf.Floor(left / visualCellSize) * visualCellSize;
+            float endX = Mathf.Ceil(right / visualCellSize) * visualCellSize;
+            float startY = Mathf.Floor(bottom / visualCellSize) * visualCellSize;
+            float endY = Mathf.Ceil(top / visualCellSize) * visualCellSize;
 
             List<Vector3> lineVertices = new();
             List<int> lineIndices = new();
@@ -261,7 +260,7 @@ namespace View.GameTable
 
             if (draggable is not PortView)
                 return;
-            
+
             _connectionFactory.CreateConnectionView(_connectionsContainer);
 
             _draggablePort = draggable;
