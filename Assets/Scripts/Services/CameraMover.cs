@@ -9,7 +9,8 @@ namespace Services
     public class CameraMover : ITickable, IDisposable
     {
         public event Action<Transform> OnCameraMove;
-        
+        public event Action<Transform> OnCameraZoom;
+
         private readonly InputService _inputService;
         private Camera _camera;
 
@@ -41,10 +42,11 @@ namespace Services
         }
 
         #region Camera Scroll
+
         public void Tick()
         {
             if (!_isMoving) return;
-            
+
             var zoomFactor = Mathf.InverseLerp(
                 Constants.CameraSettings.ZoomMin,
                 Constants.CameraSettings.ZoomMax,
@@ -76,7 +78,7 @@ namespace Services
                     _moveVelocity.y * Time.deltaTime,
                     0f
                 );
-                
+
                 OnCameraMove?.Invoke(_camera.transform);
             }
             else
@@ -95,9 +97,11 @@ namespace Services
         {
             _moveDirection = Vector2.zero;
         }
+
         #endregion
 
         #region Camera Zoom
+
         private void HandleMouseScroll(MouseContext context)
         {
             var scrollValue = context.GetMouseScroll();
@@ -110,10 +114,13 @@ namespace Services
                 );
 
                 _zoomTween?.Kill();
-                _zoomTween = _camera.DOOrthoSize(_zoomTarget, Constants.CameraSettings.ZoomDuration);
+
+                _zoomTween = _camera
+                    .DOOrthoSize(_zoomTarget, Constants.CameraSettings.ZoomDuration)
+                    .OnUpdate(() => OnCameraZoom?.Invoke(_camera.transform));
             }
         }
-        
+
         #endregion
 
         public void Dispose()

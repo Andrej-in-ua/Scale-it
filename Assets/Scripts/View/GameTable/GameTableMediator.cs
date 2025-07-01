@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Controllers;
 using Services.Input;
+using TMPro;
 using UI.Game.CardPreviews;
 using Unity.Entities;
 using UnityEngine;
@@ -19,6 +20,8 @@ namespace View.GameTable
         private readonly GridManager _gridManager;
         private readonly CardViewPool _cardViewPool;
         private readonly ConnectionFactory _connectionFactory;
+
+        private readonly BuildGridFactory _buildGridFactory;
         private readonly IEnvironmentFactory _environmentFactory;
 
         private readonly Dictionary<Vector2Int, GameObject> _generatedChunks = new();
@@ -30,17 +33,24 @@ namespace View.GameTable
         private CardView _originalCardView;
         private CardView _createdCardView;
         private CardView _draggableCardView;
-        
+
         private IDraggable _draggablePort;
         private Transform _connectionsContainer;
 
+        private Camera _camera;
+
         private Transform _environmentContainer;
+
+        private Mesh _mesh;
+        private GameObject _buildGrid;
+
         private float _environmentSeed;
 
         public GameTableMediator(
             GridManager gridManager,
             CardViewPool cardViewPool,
             ConnectionFactory connectionFactory,
+            BuildGridFactory buildGridFactory,
             IEnvironmentFactory environmentFactory
         )
         {
@@ -48,19 +58,23 @@ namespace View.GameTable
             _cardViewPool = cardViewPool;
             _connectionFactory = connectionFactory;
             _environmentFactory = environmentFactory;
+            _buildGridFactory = buildGridFactory;
         }
 
         public void ConstructGameTable(Camera camera)
         {
+            _camera = camera;
+
             _gridManager.Construct(World.DefaultGameObjectInjectionWorld.EntityManager);
             _cardViewPool.Construct();
             _connectionsContainer = _connectionFactory.CreateConnectionsContainer();
 
+            (_mesh, _buildGrid) = _buildGridFactory.Construct();
+            DrawGrid();
+
             _environmentFactory.LoadAssets();
-            
             _environmentContainer = new GameObject("Environment Container").transform;
             _environmentSeed = Random.Range(10_000_000, 99_999_999);
-
             UpdateEnvironmentAround(camera.transform.position);
 
             _isConstructed = true;
@@ -153,6 +167,53 @@ namespace View.GameTable
             return chunkRoot;
         }
 
+        private void DrawGrid()
+        {
+            _mesh.Clear();
+
+            float zoomFactor = Mathf.InverseLerp(Constants.CameraSettings.ZoomMin, Constants.CameraSettings.ZoomMax,
+                _camera.orthographicSize);
+
+            float visualCellSize = 1 * (zoomFactor < 0.15f ? 1 : zoomFactor < 0.6f ? 10 : 50);
+
+            float cameraWidth = _camera.orthographicSize * _camera.aspect * 2f;
+            float cameraHeight = _camera.orthographicSize * 2;
+
+            Vector3 cameraPosition = _camera.transform.position;
+
+            float left = cameraPosition.x - cameraWidth / 2;
+            float right = cameraPosition.x + cameraWidth / 2;
+            float bottom = cameraPosition.y - cameraHeight / 2;
+            float top = cameraPosition.y + cameraHeight / 2;
+
+            float startX = Mathf.Floor(left / visualCellSize) * visualCellSize;
+            float endX = Mathf.Ceil(right / visualCellSize) * visualCellSize;
+            float startY = Mathf.Floor(bottom / visualCellSize) * visualCellSize;
+            float endY = Mathf.Ceil(top / visualCellSize) * visualCellSize;
+
+            List<Vector3> lineVertices = new();
+            List<int> lineIndices = new();
+
+            for (float x = startX; x <= endX; x += visualCellSize)
+            {
+                lineVertices.Add(new Vector3(x, startY));
+                lineVertices.Add(new Vector3(x, endY));
+                lineIndices.Add(lineVertices.Count - 2);
+                lineIndices.Add(lineVertices.Count - 1);
+            }
+
+            for (float y = startY; y <= endY; y += visualCellSize)
+            {
+                lineVertices.Add(new Vector3(startX, y));
+                lineVertices.Add(new Vector3(endX, y));
+                lineIndices.Add(lineVertices.Count - 2);
+                lineIndices.Add(lineVertices.Count - 1);
+            }
+
+            _mesh.vertices = lineVertices.ToArray();
+            _mesh.SetIndices(lineIndices.ToArray(), MeshTopology.Lines, 0);
+        }
+
         public void SnapCardToGridByWorldPosition(CardView cardView, Vector3 position)
         {
             AssertConstructed();
@@ -170,9 +231,24 @@ namespace View.GameTable
             }
         }
 
-        public void HandleCameraMove(Transform cameraTransform)
+        public void GridVisibility(TMP_Text buttonText)
         {
-            UpdateEnvironmentAround(cameraTransform.position);
+            if (_buildGrid.activeSelf)
+            {
+                _buildGrid.SetActive(false);
+                buttonText.text = "Off";
+            }
+            else
+            {
+                _buildGrid.SetActive(true);
+                buttonText.text = "On";
+            }
+        }
+
+        public void OnCameraChanged(Transform cameraPosition)
+        {
+            DrawGrid();
+            UpdateEnvironmentAround(cameraPosition.position);
         }
 
         public void HandleStartDraw(DragContext context)
@@ -184,7 +260,7 @@ namespace View.GameTable
 
             if (draggable is not PortView)
                 return;
-            
+
             _connectionFactory.CreateConnectionView(_connectionsContainer);
 
             _draggablePort = draggable;

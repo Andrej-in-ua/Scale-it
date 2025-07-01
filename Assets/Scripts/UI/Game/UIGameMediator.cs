@@ -3,10 +3,12 @@ using System.Linq;
 using Controllers;
 using DeckManager;
 using Services.Input;
+using TMPro;
 using UI.Game.CardPreviews;
 using UI.Game.DebugTools;
 using UI.Game.Inventory;
 using UnityEngine;
+using UnityEngine.UI;
 using View.GameTable;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
@@ -19,14 +21,19 @@ namespace UI.Game
         public event Action<Vector3> OnMouseLeaveInventory;
 
         public event Action OnCardDragRollback;
+        
+        public event Action<TMP_Text> OnGridVisibilityButtonClick;
 
         private readonly UICardFactory _uiCardFactory;
         private readonly UIGameFactory _uiFactory;
+        private readonly UIGridVisibilityButtonFactory _uiGridVisibilityButtonFactory;
 
         private UIInventory _inventory;
         private Transform _inventoryPanel;
         private CardSpawner _cardSpawner;
         private Camera _camera;
+        
+        private Button _gridVisibilityButton;
 
         private bool _isHoverInventory;
 
@@ -36,11 +43,13 @@ namespace UI.Game
 
         public UIGameMediator(
             UICardFactory uiCardFactory,
-            UIGameFactory uiFactory
+            UIGameFactory uiFactory,
+            UIGridVisibilityButtonFactory uiGridVisibilityButtonFactory
         )
         {
             _uiCardFactory = uiCardFactory;
             _uiFactory = uiFactory;
+            _uiGridVisibilityButtonFactory = uiGridVisibilityButtonFactory;
         }
 
         public void ConstructUI()
@@ -54,6 +63,9 @@ namespace UI.Game
             _cardSpawner = _uiFactory.CreateCardSpawner(_inventory.gameObject.transform);
             _cardSpawner.OnCardSpawnRequested += SpawnCard;
 
+            _gridVisibilityButton = _uiGridVisibilityButtonFactory.Construct(_inventory.gameObject.transform);
+            _gridVisibilityButton.onClick.AddListener(() => OnGridVisibilityButtonClick?.Invoke(_gridVisibilityButton.transform.GetChild(0).GetComponent<TMP_Text>()));
+            
             var keys = Deck.Instance.cards.Keys.ToList().GetRange(1, 4);
             for (int i = 0; i < 10; i++)
             {
