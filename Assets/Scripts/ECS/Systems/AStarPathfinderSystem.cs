@@ -1,20 +1,25 @@
-﻿using ECS.Components;
-using ECS.Systems.Jobs;
+﻿using System;
+using Common;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Jobs;
 using Unity.Mathematics;
+using ECS.Components;
 
 namespace ECS.Systems
 {
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    [BurstCompile]
+    [UpdateAfter(typeof(GridSystem))]
     public partial struct AStarPathfinderSystem : ISystem
     {
+        public void OnCreate(ref SystemState state)
+        {
+            state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
+        }
+
         public void OnUpdate(ref SystemState state)
         {
             var gridMap = GridService.Map;
-
             var ecbSingleton = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>();
             var ecb = ecbSingleton.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
 
@@ -23,6 +28,7 @@ namespace ECS.Systems
                 GridCosts = gridMap,
                 Ecb = ecb
             };
+
             state.Dependency = job.ScheduleParallel(state.Dependency);
         }
 
@@ -32,71 +38,130 @@ namespace ECS.Systems
             [ReadOnly] public NativeParallelHashMap<int2, half>.ReadOnly GridCosts;
             public EntityCommandBuffer.ParallelWriter Ecb;
 
+            private const float MoveCost = 10f;
+            private const float TurnPenalty = 50f;
+
             public void Execute(Entity entity, [EntityIndexInQuery] int sortKey, in PathRequest request)
             {
+                // int startCost = GridCosts.TryGetValue(request.Start, out var sCost) ? (int)sCost : 0;
+                // int endCost = GridCosts.TryGetValue(request.End, out var eCost) ? (int)eCost : 0;
+                //
+                // if (startCost < 0 || endCost < 0)
+                // {
+                //     UnityEngine.Debug.LogWarning($"[AStar] Start or End not walkable (cost < 0): {request.Start} -> {request.End}");
+                //     Ecb.RemoveComponent<PathRequest>(sortKey, entity);
+                //     return;
+                // }
+
+                var openSet = new NativeMinHeap<PathNode>(128, Allocator.Temp);
+                var gScore = new NativeParallelHashMap<PathNode, float>(128, Allocator.Temp);
+                var cameFrom = new NativeParallelHashMap<PathNode, PathNode>(128, Allocator.Temp);
                 var path = new NativeList<int2>(Allocator.Temp);
-                var openSet = new NativeList<int2>(Allocator.Temp);
-                var cameFrom = new NativeParallelHashMap<int2, int2>(128, Allocator.Temp);
-                var gScore = new NativeParallelHashMap<int2, float>(128, Allocator.Temp);
 
-                openSet.Add(request.Start);
-                gScore[request.Start] = 0f;
-
-                while (openSet.Length > 0)
+                FixedList64Bytes<int2> directions = new FixedList64Bytes<int2>
                 {
-                    var current = openSet[0];
-                    openSet.RemoveAtSwapBack(0);
+                    new int2(1, 0),
+                    new int2(-1, 0),
+                    new int2(0, 1),
+                    new int2(0, -1)
+                };
 
-                    if (current.Equals(request.End))
+                // Stopwatch stopwatch = Stopwatch.StartNew();
+                // var request = new PathRequest { Start = new int2(0,0), End = new int2(100,100) }; // Ensure request is valid
+                
+                var start = new PathNode { Pos = request.Start, Dir = int2.zero };
+                gScore[start] = 0;
+                openSet.Enqueue(start, Heuristic(request.Start, request.End));
+
+                int iterationLimit = 10_000_000;
+                var iterations = 0;
+
+                while (!openSet.IsEmpty && iterations < iterationLimit)
+                {
+                    iterations++;
+                    var current = openSet.Dequeue();
+
+                    if (current.Pos.Equals(request.End))
                     {
-                        // Reconstruct path
-                        path.Add(current);
-                        while (cameFrom.TryGetValue(current, out var prev))
+                        var node = current;
+                        while (cameFrom.TryGetValue(node, out var prev))
                         {
-                            current = prev;
-                            path.Add(current);
+                            path.Add(node.Pos);
+                            node = prev;
                         }
-
+                        path.Add(request.Start);
                         break;
                     }
 
-                    foreach (var neighbor in GetNeighbors(current))
+                    foreach (var dir in directions)
                     {
-                        if (!GridCosts.TryGetValue(neighbor, out var cost)) continue;
+                        var neighborPos = current.Pos + dir;
 
-                        var tentativeGScore = gScore[current] + cost;
-                        if (!gScore.TryGetValue(neighbor, out var existingScore) || tentativeGScore < existingScore)
+                        float cellCost = GridCosts.TryGetValue(neighborPos, out var rawCost)
+                            ? rawCost
+                            : 0; // default walkable
+
+                        var neighbor = new PathNode { Pos = neighborPos, Dir = dir };
+                        if (neighborPos.Equals(request.End))
+                        {
+                            openSet.Enqueue(neighbor, 0);
+                            break;
+                        }
+
+                        // if (cellCost >= 1)
+                        //     continue; // not walkable
+
+                        float turnCost = (current.Dir.Equals(int2.zero) || current.Dir.Equals(dir)) ? 0 : TurnPenalty;
+                        float tentativeG = gScore[current] + MoveCost + turnCost + cellCost;
+
+                        if (!gScore.TryGetValue(neighbor, out var existingG) || tentativeG < existingG)
                         {
                             cameFrom[neighbor] = current;
-                            gScore[neighbor] = tentativeGScore;
-                            openSet.Add(neighbor);
+                            gScore[neighbor] = tentativeG;
+                            float f = tentativeG + Heuristic(neighborPos, request.End);
+                            openSet.Enqueue(neighbor, f);
                         }
                     }
                 }
 
-                for (int i = path.Length - 1; i >= 0; i--)
+                if (path.Length == 0)
                 {
-                    Ecb.AppendToBuffer(sortKey, entity, new PathResult { Cell = path[i] });
+                    UnityEngine.Debug.LogWarning($"[AStar] No path found from {request.Start} to {request.End}");
                 }
+                else
+                {
+                    // UnityEngine.Debug.Log($"[AStar] Iterations {iterations}");
+
+                    for (int i = path.Length - 1; i >= 0; i--)
+                    {
+                        // UnityEngine.Debug.Log($"[AStar] Found path {path[i]}");
+                        Ecb.AppendToBuffer(sortKey, entity, new PathResult { Cell = path[i] });
+                    }
+                }
+                
+                // stopwatch.Stop();
+                // UnityEngine.Debug.Log($"Find path time: {stopwatch.ElapsedMilliseconds} мс | {stopwatch.ElapsedTicks} ticks");
 
                 path.Dispose();
                 openSet.Dispose();
-                cameFrom.Dispose();
                 gScore.Dispose();
+                cameFrom.Dispose();
 
                 Ecb.RemoveComponent<PathRequest>(sortKey, entity);
             }
 
-            private static NativeList<int2> GetNeighbors(int2 cell)
+            private static float Heuristic(int2 a, int2 b)
             {
-                var list = new NativeList<int2>(4, Allocator.Temp)
-                {
-                    cell + new int2(1, 0),
-                    cell + new int2(-1, 0),
-                    cell + new int2(0, 1),
-                    cell + new int2(0, -1)
-                };
-                return list;
+                return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
+            }
+
+            private struct PathNode : IEquatable<PathNode>
+            {
+                public int2 Pos;
+                public int2 Dir;
+
+                public bool Equals(PathNode other) => Pos.Equals(other.Pos) && Dir.Equals(other.Dir);
+                public override int GetHashCode() => (int)(math.hash(Pos) ^ math.hash(Dir));
             }
         }
     }
