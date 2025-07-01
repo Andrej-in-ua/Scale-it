@@ -245,7 +245,7 @@ namespace View.GameTable
             }
         }
 
-        public void OnCameraMove(Transform cameraPosition)
+        public void OnCameraChanged(Transform cameraPosition)
         {
             DrawGrid();
             UpdateEnvironmentAround(cameraPosition.position);

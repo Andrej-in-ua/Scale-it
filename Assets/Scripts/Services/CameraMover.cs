@@ -9,6 +9,7 @@ namespace Services
     public class CameraMover : ITickable, IDisposable
     {
         public event Action<Transform> OnCameraMove;
+        public event Action<Transform> OnCameraZoom;
 
         private readonly InputService _inputService;
         private Camera _camera;
@@ -116,7 +117,7 @@ namespace Services
 
                 _zoomTween = _camera
                     .DOOrthoSize(_zoomTarget, Constants.CameraSettings.ZoomDuration)
-                    .OnUpdate(() => OnCameraMove?.Invoke(_camera.transform));
+                    .OnUpdate(() => OnCameraZoom?.Invoke(_camera.transform));
             }
         }
 

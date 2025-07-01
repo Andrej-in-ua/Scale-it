@@ -74,7 +74,8 @@ namespace StateMachine.Global.States
             Application.quitting += Exit;
             SceneManager.sceneLoaded += OnSceneLoaded;
             
-            _cameraMover.OnCameraMove += _gameTableMediator.OnCameraMove;
+            _cameraMover.OnCameraMove += _gameTableMediator.OnCameraChanged;
+            _cameraMover.OnCameraZoom += _gameTableMediator.OnCameraChanged;
             _uiGameMediator.OnGridVisibilityButtonClick += _gameTableMediator.GridVisibility;
             
             SubscribeCardDragController();
@@ -128,7 +129,8 @@ namespace StateMachine.Global.States
             Application.quitting -= Exit;
             SceneManager.sceneLoaded -= OnSceneLoaded;
             
-            _cameraMover.OnCameraMove -= _gameTableMediator.OnCameraMove;
+            _cameraMover.OnCameraMove -= _gameTableMediator.OnCameraChanged;
+            _cameraMover.OnCameraZoom -= _gameTableMediator.OnCameraChanged;
             
             UnsubscribeCardDagController();
             UnsubscribeConnectionDrawing();
