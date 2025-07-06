@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using Controllers;
+using ECS.Components;
 using Services.Input;
 using UI.Game.CardPreviews;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -33,10 +35,13 @@ namespace View.GameTable
         
         private IDraggable _draggablePort;
         private Transform _connectionsContainer;
+        private Vector3 _drawStartPosition;
+        private Entity _activePathRequestEntity;
+        private EntityManager _entityManager;
 
         private Transform _environmentContainer;
         private float _environmentSeed;
-
+        
         public GameTableMediator(
             GridManager gridManager,
             CardViewPool cardViewPool,
@@ -48,6 +53,7 @@ namespace View.GameTable
             _cardViewPool = cardViewPool;
             _connectionFactory = connectionFactory;
             _environmentFactory = environmentFactory;
+            _entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
         }
 
         public void ConstructGameTable(Camera camera)
@@ -187,19 +193,45 @@ namespace View.GameTable
             
             _connectionFactory.CreateConnectionView(_connectionsContainer);
 
+            _drawStartPosition = context.MouseWorldPosition;
+            
+            _activePathRequestEntity = _entityManager.CreateEntity();
+            _entityManager.AddBuffer<PathResult>(_activePathRequestEntity); 
+            
             _draggablePort = draggable;
         }
 
         public void HandleDraw(DragContext context)
         {
             if (_draggablePort == null) return;
-            // pathfinding
+            
+            var startCell = _gridManager.WorldToCell(_drawStartPosition);
+            var endCell = _gridManager.WorldToCell(context.MouseWorldPosition);
+            
+            if (!startCell.Equals(endCell))
+            {
+                var request = new PathRequest
+                {
+                    Start = new int2(startCell.x, startCell.y),
+                    End = new int2(endCell.x, endCell.y)
+                };
+                 
+                if (!_entityManager.HasComponent<PathRequest>(_activePathRequestEntity))
+                    _entityManager.AddComponentData(_activePathRequestEntity, request);
+                else
+                    _entityManager.SetComponentData(_activePathRequestEntity, request);
+            
+                var buffer = _entityManager.GetBuffer<PathResult>(_activePathRequestEntity);
+                buffer.Clear();
+            }
         }
 
         public void HandleStopDraw(DragContext context)
         {
             _draggablePort = null;
-            // pathfinding
+            
+            if (_entityManager.Exists(_activePathRequestEntity))
+                _entityManager.DestroyEntity(_activePathRequestEntity);
         }
 
         public void HandleStartDrag(CardDragContext context)
