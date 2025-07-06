@@ -6,13 +6,14 @@ namespace UI.Game.DebugTools
 {
     public class CardSpawner : MonoBehaviour
     {
-        [SerializeField] private TMP_Dropdown _IDCardDropdown;
+        public GameObject CardScrollView;
+        public Transform Content;
+        public TMP_InputField InputField;
         
         public event Action<int> OnCardSpawnRequested;
-
-        public void SpawnCard()
+        
+        public void SpawnCard(int cardId)
         {
-            int cardId = _IDCardDropdown.value;
             OnCardSpawnRequested?.Invoke(cardId);
         }
     }

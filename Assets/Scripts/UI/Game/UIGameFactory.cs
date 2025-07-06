@@ -38,5 +38,16 @@ namespace UI.Game
 
             return cardSpawnerButton.GetComponent<CardSpawner>();
         }
+
+        public Transform CreateCardSearchResultPanel(Transform parent, CardSpawner spawner , int cardId, string cardName)
+        {
+            var searchResultPrefab = _assetProviderService.LoadAssetFromResources<GameObject>(Constants.CardSearchResultPanelPath)
+                .gameObject;
+            
+            CardSearchResult searchResult = Object.Instantiate(searchResultPrefab, parent).GetComponent<CardSearchResult>();
+            searchResult.Initialize(spawner ,cardId, cardName);
+            
+            return searchResult.gameObject.transform;
+        }
     }
 }
