@@ -24,11 +24,11 @@ public partial struct PathResultLoggerSystem : ISystem
                 continue;
             }
 
-            Debug.Log($"[PathLogger] Entity {entity.Index} - path length: {buffer.Length}");
-            for (int i = 0; i < buffer.Length; i++)
-            {
-                Debug.Log($"  [{i}] Cell: {buffer[i].Cell}");
-            }
+            // Debug.Log($"[PathLogger] Entity {entity.Index} - path length: {buffer.Length}");
+            // for (int i = 0; i < buffer.Length; i++)
+            // {
+            //     Debug.Log($"  [{i}] Cell: {buffer[i].Cell}");
+            // }
             
             ecb.AddComponent<PathLoggedTag>(entity);
         }

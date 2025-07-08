@@ -196,8 +196,8 @@ namespace View.GameTable
             _drawStartPosition = context.MouseWorldPosition;
             
             _activePathRequestEntity = _entityManager.CreateEntity();
-            _entityManager.AddBuffer<PathResult>(_activePathRequestEntity); 
-            
+            _entityManager.AddBuffer<PathResult>(_activePathRequestEntity);
+
             _draggablePort = draggable;
         }
 
@@ -215,7 +215,10 @@ namespace View.GameTable
                     Start = new int2(startCell.x, startCell.y),
                     End = new int2(endCell.x, endCell.y)
                 };
-                 
+
+                if (_activePathRequestEntity == Entity.Null || !_entityManager.Exists(_activePathRequestEntity))
+                    return;
+                
                 if (!_entityManager.HasComponent<PathRequest>(_activePathRequestEntity))
                     _entityManager.AddComponentData(_activePathRequestEntity, request);
                 else

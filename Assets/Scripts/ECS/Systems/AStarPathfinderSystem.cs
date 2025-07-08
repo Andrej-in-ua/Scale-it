@@ -5,6 +5,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using ECS.Components;
+using View.GameTable;
 
 namespace ECS.Systems
 {
@@ -99,15 +100,20 @@ namespace ECS.Systems
 
                         float cellCost = GridCosts.TryGetValue(neighborPos, out var rawCost)
                             ? rawCost
-                            : 0; // default walkable
+                            : 0;
 
                         var neighbor = new PathNode { Pos = neighborPos, Dir = dir };
-                        if (neighborPos.Equals(request.End))
                         {
                             openSet.Enqueue(neighbor, 0);
                             break;
                         }
 
+                        // if (neighborPos.Equals(request.End))
+                        // {
+                        //     openSet.Enqueue(neighbor, 0);
+                        //     break;
+                        // }
+                        //
                         // if (cellCost >= 1)
                         //     continue; // not walkable
 

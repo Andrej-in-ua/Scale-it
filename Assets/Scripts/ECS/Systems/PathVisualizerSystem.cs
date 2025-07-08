@@ -1,5 +1,4 @@
 using ECS.Components;
-using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -17,7 +16,6 @@ namespace ECS.Systems
 
         public void OnCreate(ref SystemState state)
         {
-            // Requires prefab with Mesh + Material
             state.RequireForUpdate<VisualPrefabTag>();
         }
 
@@ -46,31 +44,28 @@ namespace ECS.Systems
                     continue;
                 }
 
-                Debug.Log("buffer = " + buffer.Length);
-
                 for (int i = 0; i < buffer.Length; i++)
                 {
                     var pos = buffer[i].Cell;
                     var visual = ecb.Instantiate(_visualPrefab);
 
-                    ecb.SetComponent(visual, new LocalTransform
+                    ecb.AddComponent(visual, new LocalTransform
                     {
-                        Position = new float3(pos.x + 0.5f, pos.y + 0.5f, 0), // center in cell
+                        Position = new float3(pos.x + 0.5f, pos.y + 0.5f, 0),
                         Rotation = quaternion.identity,
-                        Scale = 0.4f
+                        Scale = 1f
                     });
 
-                    // Optional: color gradient along the path
                     float t = i / (float)buffer.Length;
-                    var color = new float4(1 - t, t, 0.1f, 1f); // red to green
-                    ecb.SetComponent(visual, new URPMaterialPropertyBaseColor { Value = color });
+                    var color = new float4(1 - t, t, 0.1f, 1f);
+                    ecb.AddComponent(visual, new URPMaterialPropertyBaseColor { Value = color });
                 }
 
-                ecb.AddComponent<PathVisualizedTag>(entity);
+               // ecb.AddComponent<PathVisualizedTag>(entity);
             }
 
             ecb.Playback(state.EntityManager);
-            // ecb.Dispose();
+            ecb.Dispose();
         }
     }
 

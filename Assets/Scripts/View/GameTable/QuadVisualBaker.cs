@@ -7,7 +7,7 @@ namespace View.GameTable
     {
         public override void Bake(QuadVisualAuthoring authoring)
         {
-            var entity = GetEntity(TransformUsageFlags.Renderable);
+            var entity = GetEntity(TransformUsageFlags.Dynamic);
             AddComponent<VisualPrefabTag>(entity);
         }
     }
