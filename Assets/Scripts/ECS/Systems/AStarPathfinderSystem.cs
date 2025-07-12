@@ -103,10 +103,6 @@ namespace ECS.Systems
                             : 0;
 
                         var neighbor = new PathNode { Pos = neighborPos, Dir = dir };
-                        {
-                            openSet.Enqueue(neighbor, 0);
-                            break;
-                        }
 
                         // if (neighborPos.Equals(request.End))
                         // {
