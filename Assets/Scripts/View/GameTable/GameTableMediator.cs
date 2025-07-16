@@ -36,6 +36,8 @@ namespace View.GameTable
         private IDraggable _draggablePort;
         private Transform _connectionsContainer;
         private Vector3 _drawStartPosition;
+        private Vector2Int _oldDrawEndPosition;
+        
         private Entity _activePathRequestEntity;
         private EntityManager _entityManager;
 
@@ -208,8 +210,10 @@ namespace View.GameTable
             var startCell = _gridManager.WorldToCell(_drawStartPosition);
             var endCell = _gridManager.WorldToCell(context.MouseWorldPosition);
             
-            if (!startCell.Equals(endCell))
+            if (!startCell.Equals(endCell) && endCell != _oldDrawEndPosition)
             {
+                _oldDrawEndPosition = endCell;
+                
                 var request = new PathRequest
                 {
                     Start = new int2(startCell.x, startCell.y),
