@@ -69,7 +69,7 @@ namespace ECS.Systems
 
                     ecb.AddComponent(visual, new LocalTransform
                     {
-                        Position = new float3(pos.x + 0.5f, pos.y + 0.5f, 0),
+                        Position = new float3(pos.x + 0.5f, pos.y + 0.5f, -1f),
                         Rotation = quaternion.identity,
                         Scale = 1f
                     });

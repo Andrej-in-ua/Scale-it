@@ -22,6 +22,7 @@ namespace UI.Game.Inventory
 
             _canvas.worldCamera = Camera.main;
             _canvas.sortingLayerName = "Inventory";
+            _canvas.planeDistance = 1;
         }
 
         public bool Take(UICardPreview cardPreview) => Take(cardPreview.CardId);
