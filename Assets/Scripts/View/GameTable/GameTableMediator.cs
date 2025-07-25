@@ -171,45 +171,74 @@ namespace View.GameTable
         {
             _mesh.Clear();
 
-            float zoom = Mathf.InverseLerp(Constants.CameraSettings.ZoomMin, Constants.CameraSettings.ZoomMax, _camera.orthographicSize);
-            float visualCellSize = zoom < 0.2f ? 1 : zoom < 0.5f ? 3 : zoom < 0.8f ? 45 : 180;
+            float zoom = Mathf.InverseLerp(Constants.CameraSettings.ZoomMin, Constants.CameraSettings.ZoomMax,
+                _camera.orthographicSize);
+            float camWidth = _camera.orthographicSize * _camera.aspect * 2f;
+            float camHeight = _camera.orthographicSize * 2f;
+            Vector3 camPos = _camera.transform.position;
 
-            float cameraWidth = _camera.orthographicSize * _camera.aspect * 2f;
-            float cameraHeight = _camera.orthographicSize * 2;
+            float left = camPos.x - camWidth / 2;
+            float right = camPos.x + camWidth / 2;
+            float bottom = camPos.y - camHeight / 2;
+            float top = camPos.y + camHeight / 2;
 
-            Vector3 cameraPosition = _camera.transform.position;
-
-            float left = cameraPosition.x - cameraWidth / 2;
-            float right = cameraPosition.x + cameraWidth / 2;
-            float bottom = cameraPosition.y - cameraHeight / 2;
-            float top = cameraPosition.y + cameraHeight / 2;
-
-            float startX = Mathf.Floor(left / visualCellSize) * visualCellSize;
-            float endX = Mathf.Ceil(right / visualCellSize) * visualCellSize;
-            float startY = Mathf.Floor(bottom / visualCellSize) * visualCellSize;
-            float endY = Mathf.Ceil(top / visualCellSize) * visualCellSize;
-
-            List<Vector3> lineVertices = new();
-            List<int> lineIndices = new();
-
-            for (float x = startX; x <= endX; x += visualCellSize)
+            var gridLevels = new List<GridLevel>
             {
-                lineVertices.Add(new Vector3(x, startY));
-                lineVertices.Add(new Vector3(x, endY));
-                lineIndices.Add(lineVertices.Count - 2);
-                lineIndices.Add(lineVertices.Count - 1);
+                new GridLevel(
+                    cellSize:    1f,
+                    fullStart:   0.00f,
+                    fullEnd:     0.1f,
+                    blendRange:  0.05f,
+                    maxAlpha:    0.1f   
+                ),
+                new GridLevel(3f,  0.1f, 0.25f, 0.15f, 0.2f),
+                new GridLevel(45f, 0.25f, 0.75f, 0.15f, 0.6f),
+                new GridLevel(180f, 0.75f, 1.00f, 0.15f, 1.0f)
+            };
+
+            List<Vector3> vertices = new();
+            List<int> indices = new();
+            List<Color> colors = new();
+
+            foreach (var level in gridLevels)
+            {
+                float alpha = level.GetAlpha(zoom);
+                if (alpha <= 0f)
+                    continue;
+
+                float cellSize = level.CellSize;
+
+                float startX = Mathf.Floor(left / cellSize) * cellSize;
+                float endX = Mathf.Ceil(right / cellSize) * cellSize;
+                float startY = Mathf.Floor(bottom / cellSize) * cellSize;
+                float endY = Mathf.Ceil(top / cellSize) * cellSize;
+
+                Color lineColor = new Color(1, 1, 1, alpha); 
+
+                for (float x = startX; x <= endX; x += cellSize)
+                {
+                    vertices.Add(new Vector3(x, startY));
+                    vertices.Add(new Vector3(x, endY));
+                    colors.Add(lineColor);
+                    colors.Add(lineColor);
+                    indices.Add(vertices.Count - 2);
+                    indices.Add(vertices.Count - 1);
+                }
+
+                for (float y = startY; y <= endY; y += cellSize)
+                {
+                    vertices.Add(new Vector3(startX, y));
+                    vertices.Add(new Vector3(endX, y));
+                    colors.Add(lineColor);
+                    colors.Add(lineColor);
+                    indices.Add(vertices.Count - 2);
+                    indices.Add(vertices.Count - 1);
+                }
             }
 
-            for (float y = startY; y <= endY; y += visualCellSize)
-            {
-                lineVertices.Add(new Vector3(startX, y));
-                lineVertices.Add(new Vector3(endX, y));
-                lineIndices.Add(lineVertices.Count - 2);
-                lineIndices.Add(lineVertices.Count - 1);
-            }
-
-            _mesh.vertices = lineVertices.ToArray();
-            _mesh.SetIndices(lineIndices.ToArray(), MeshTopology.Lines, 0);
+            _mesh.SetVertices(vertices);
+            _mesh.SetIndices(indices.ToArray(), MeshTopology.Lines, 0);
+            _mesh.SetColors(colors);
         }
 
         public void SnapCardToGridByWorldPosition(CardView cardView, Vector3 position)
@@ -446,6 +475,56 @@ namespace View.GameTable
         {
             if (!_isConstructed)
                 throw new Exception("GridView is not constructed");
+        }
+    }
+
+    public struct GridLevel
+    {
+        public float CellSize;      
+        public float FullStart;     
+        public float FullEnd;       
+        public float BlendRange;    
+        public float MaxAlpha;      
+
+        public GridLevel(
+            float cellSize,
+            float fullStart,
+            float fullEnd,
+            float blendRange,
+            float maxAlpha
+        )
+        {
+            CellSize    = cellSize;
+            FullStart   = fullStart;
+            FullEnd     = fullEnd;
+            BlendRange  = blendRange;
+            MaxAlpha    = maxAlpha;
+        }
+
+        public float GetAlpha(float zoom)
+        {
+            float blendStart = FullStart - BlendRange;
+            float blendEnd   = FullEnd   + BlendRange;
+            float alpha;
+
+            if (zoom < blendStart || zoom > blendEnd)
+            {
+                alpha = 0f;
+            }
+            else if (zoom >= FullStart && zoom <= FullEnd)
+            {
+                alpha = 1f;
+            }
+            else if (zoom < FullStart)
+            {
+                alpha = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(blendStart, FullStart, zoom));
+            }
+            else
+            {
+                alpha = Mathf.SmoothStep(1f, 0f, Mathf.InverseLerp(FullEnd, blendEnd, zoom));
+            }
+
+            return alpha * MaxAlpha;
         }
     }
 }
