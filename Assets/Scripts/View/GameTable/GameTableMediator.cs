@@ -171,10 +171,8 @@ namespace View.GameTable
         {
             _mesh.Clear();
 
-            float zoomFactor = Mathf.InverseLerp(Constants.CameraSettings.ZoomMin, Constants.CameraSettings.ZoomMax,
-                _camera.orthographicSize);
-
-            float visualCellSize = 1 * (zoomFactor < 0.15f ? 1 : zoomFactor < 0.6f ? 10 : 50);
+            float zoom = Mathf.InverseLerp(Constants.CameraSettings.ZoomMin, Constants.CameraSettings.ZoomMax, _camera.orthographicSize);
+            float visualCellSize = zoom < 0.2f ? 1 : zoom < 0.5f ? 3 : zoom < 0.8f ? 45 : 180;
 
             float cameraWidth = _camera.orthographicSize * _camera.aspect * 2f;
             float cameraHeight = _camera.orthographicSize * 2;

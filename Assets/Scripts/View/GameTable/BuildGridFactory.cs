@@ -7,9 +7,6 @@ namespace View.GameTable
     public class BuildGridFactory
     {
         private readonly IAssetProviderService _assetProviderService;
-        
-        private Mesh _mesh;
-        private GameObject _gridPrefab;
 
         public BuildGridFactory(IAssetProviderService assetProviderService)
         {
@@ -18,11 +15,12 @@ namespace View.GameTable
         
         public (Mesh, GameObject) Construct()
         {
-            _mesh = new Mesh();
-            _gridPrefab = Object.Instantiate(_assetProviderService.LoadAssetFromResources<GameObject>(Constants.BuildGridPath));
-            _gridPrefab.gameObject.GetComponent<MeshFilter>().mesh = _mesh;
-            
-            return (_mesh, _gridPrefab);
+            Mesh mesh = new Mesh();
+            GameObject gridPrefab = Object.Instantiate(_assetProviderService.LoadAssetFromResources<GameObject>(Constants.BuildGridPath));
+            gridPrefab.transform.position = new Vector2(-1, -1);
+            gridPrefab.gameObject.GetComponent<MeshFilter>().mesh = mesh;
+
+            return (mesh, gridPrefab);
         }
     }
 }
