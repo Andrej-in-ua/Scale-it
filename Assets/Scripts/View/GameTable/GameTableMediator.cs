@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Controllers;
 using Services.Input;
+using TMPro;
 using UI.Game.CardPreviews;
 using Unity.Entities;
 using UnityEngine;
@@ -19,6 +20,8 @@ namespace View.GameTable
         private readonly GridManager _gridManager;
         private readonly CardViewPool _cardViewPool;
         private readonly ConnectionFactory _connectionFactory;
+
+        private readonly VisualGridFactory _visualGridFactory;
         private readonly IEnvironmentFactory _environmentFactory;
 
         private readonly Dictionary<Vector2Int, GameObject> _generatedChunks = new();
@@ -30,17 +33,28 @@ namespace View.GameTable
         private CardView _originalCardView;
         private CardView _createdCardView;
         private CardView _draggableCardView;
-        
+
         private IDraggable _draggablePort;
         private Transform _connectionsContainer;
 
+        private Camera _camera;
+
         private Transform _environmentContainer;
+
+        private Mesh _mesh;
+        private GameObject _buildGrid;
+
         private float _environmentSeed;
+        
+        private readonly List<Vector3> _vertices = new();
+        private readonly List<int> _indices = new();
+        private readonly List<Color> _colors = new();
 
         public GameTableMediator(
             GridManager gridManager,
             CardViewPool cardViewPool,
             ConnectionFactory connectionFactory,
+            VisualGridFactory visualGridFactory,
             IEnvironmentFactory environmentFactory
         )
         {
@@ -48,19 +62,23 @@ namespace View.GameTable
             _cardViewPool = cardViewPool;
             _connectionFactory = connectionFactory;
             _environmentFactory = environmentFactory;
+            _visualGridFactory = visualGridFactory;
         }
 
         public void ConstructGameTable(Camera camera)
         {
+            _camera = camera;
+
             _gridManager.Construct(World.DefaultGameObjectInjectionWorld.EntityManager);
             _cardViewPool.Construct();
             _connectionsContainer = _connectionFactory.CreateConnectionsContainer();
 
+            (_mesh, _buildGrid) = _visualGridFactory.Construct();
+            DrawVisualGrid();
+
             _environmentFactory.LoadAssets();
-            
             _environmentContainer = new GameObject("Environment Container").transform;
             _environmentSeed = Random.Range(10_000_000, 99_999_999);
-
             UpdateEnvironmentAround(camera.transform.position);
 
             _isConstructed = true;
@@ -153,6 +171,76 @@ namespace View.GameTable
             return chunkRoot;
         }
 
+        private void DrawVisualGrid()
+        {
+            _mesh.Clear();
+            _vertices.Clear();
+            _indices.Clear();
+            _colors.Clear();
+
+            float zoom = Mathf.InverseLerp(Constants.CameraSettings.ZoomMin, Constants.CameraSettings.ZoomMax,
+                _camera.orthographicSize);
+            
+            float camWidth = _camera.orthographicSize * _camera.aspect * 2f;
+            float camHeight = _camera.orthographicSize * 2f;
+            
+            Vector3 camPos = _camera.transform.position;
+
+            float left = camPos.x - camWidth / 2;
+            float right = camPos.x + camWidth / 2;
+            float bottom = camPos.y - camHeight / 2;
+            float top = camPos.y + camHeight / 2;
+
+            var gridLevels = new List<VisualGridLevel>
+            {
+                new (Constants.VisualGridSettings.ThinCellSize, 0.00f, 0.1f, 0.01f, 0.1f),
+                new (Constants.VisualGridSettings.MediumCellSize,  0.1f, 0.25f, 0.1f, 0.25f),
+                new (Constants.VisualGridSettings.ThickCellSize, 0.25f, 0.75f, 0.15f, 0.65f),
+                new (Constants.VisualGridSettings.GlobalCellSize, 0.75f, 1.00f, 0.15f, 1.0f)
+            };
+
+            foreach (var level in gridLevels)
+            {
+                float alpha = level.GetAlpha(zoom);
+                if (alpha <= 0f)
+                    continue;
+
+                float cellSize = level.CellSize;
+
+                float startX = Mathf.Floor(left / cellSize) * cellSize;
+                float endX = Mathf.Ceil(right / cellSize) * cellSize;
+                float startY = Mathf.Floor(bottom / cellSize) * cellSize;
+                float endY = Mathf.Ceil(top / cellSize) * cellSize;
+
+                Color lineColor = new Color(1, 1, 1, alpha); 
+
+                for (float x = startX; x <= endX; x += cellSize)
+                {
+                    _vertices.Add(new Vector3(x, startY));
+                    _vertices.Add(new Vector3(x, endY));
+                    _colors.Add(lineColor);
+                    _colors.Add(lineColor);
+                    _indices.Add(_vertices.Count - 2);
+                    _indices.Add(_vertices.Count - 1);
+                }
+
+                for (float y = startY; y <= endY; y += cellSize)
+                {
+                    _vertices.Add(new Vector3(startX, y));
+                    _vertices.Add(new Vector3(endX, y));
+                    _colors.Add(lineColor);
+                    _colors.Add(lineColor);
+                    _indices.Add(_vertices.Count - 2);
+                    _indices.Add(_vertices.Count - 1);
+                }
+            }
+
+            _mesh.SetVertices(_vertices);
+            _mesh.SetIndices(_indices.ToArray(), MeshTopology.Lines, 0);
+            _mesh.SetColors(_colors);
+            _mesh.RecalculateBounds();
+        }
+
         public void SnapCardToGridByWorldPosition(CardView cardView, Vector3 position)
         {
             AssertConstructed();
@@ -170,9 +258,24 @@ namespace View.GameTable
             }
         }
 
-        public void HandleCameraMove(Transform cameraTransform)
+        public void GridVisibility(TMP_Text buttonText)
         {
-            UpdateEnvironmentAround(cameraTransform.position);
+            if (_buildGrid.activeSelf)
+            {
+                _buildGrid.SetActive(false);
+                buttonText.text = "Off";
+            }
+            else
+            {
+                _buildGrid.SetActive(true);
+                buttonText.text = "On";
+            }
+        }
+
+        public void OnCameraChanged(Transform cameraPosition)
+        {
+            DrawVisualGrid();
+            UpdateEnvironmentAround(cameraPosition.position);
         }
 
         public void HandleStartDraw(DragContext context)
@@ -184,7 +287,7 @@ namespace View.GameTable
 
             if (draggable is not PortView)
                 return;
-            
+
             _connectionFactory.CreateConnectionView(_connectionsContainer);
 
             _draggablePort = draggable;

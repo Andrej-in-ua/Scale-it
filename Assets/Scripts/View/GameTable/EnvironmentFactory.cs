@@ -13,7 +13,7 @@ namespace View.GameTable
         {
             _assetProviderService = assetProviderService;
         }
-
+        
         public void LoadAssets()
         {
             _treeOne   = _assetProviderService.LoadAssetFromResources<GameObject>(Constants.TreeOneViewPath);

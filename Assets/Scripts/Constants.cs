@@ -4,6 +4,7 @@ public class Constants
     public const string InventoryPath = "Inventory";
     public const string UICardPreviewPath = "UICardPreviewPrefab";
     public const string CardSpawnerPath = "CardSpawner";
+    public const string VisualGridVisibilityButtonPath = "VisualGridVisibilityButtonPrefab";
     
     // View
     public const string CardViewPath = "GameTable/CardViewPrefab";
@@ -11,6 +12,8 @@ public class Constants
     
     public const string ConnectionViewPath = "GameTable/ConnectionViewPrefab";
     public const string ConnectionsContainerPath = "GameTable/ConnectionsContainerPrefab";
+
+    public const string VisualGridPath = "GameTable/VisualGridPrefab";
     
     // Environment
     public const string TreeOneViewPath = "GameTable/Environment/TreeOneViewPrefab";
@@ -42,5 +45,13 @@ public class Constants
         public const int ChunkSize = 144;
         public const int CellStep = 9;
         public const int ActiveChunkRange = 3;   
+    }
+
+    public class VisualGridSettings
+    {
+        public const float ThinCellSize = 1f;
+        public const float MediumCellSize = 3f;
+        public const float ThickCellSize = 45f;
+        public const float GlobalCellSize = 180f;
     }
 }
