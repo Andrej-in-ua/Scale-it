@@ -45,6 +45,10 @@ namespace View.GameTable
         private GameObject _buildGrid;
 
         private float _environmentSeed;
+        
+        private readonly List<Vector3> _vertices = new();
+        private readonly List<int> _indices = new();
+        private readonly List<Color> _colors = new();
 
         public GameTableMediator(
             GridManager gridManager,
@@ -170,6 +174,9 @@ namespace View.GameTable
         private void DrawVisualGrid()
         {
             _mesh.Clear();
+            _vertices.Clear();
+            _indices.Clear();
+            _colors.Clear();
 
             float zoom = Mathf.InverseLerp(Constants.CameraSettings.ZoomMin, Constants.CameraSettings.ZoomMax,
                 _camera.orthographicSize);
@@ -186,15 +193,11 @@ namespace View.GameTable
 
             var gridLevels = new List<VisualGridLevel>
             {
-                new(1f, 0.00f, 0.1f, 0.01f, 0.1f),
-                new (3f,  0.1f, 0.25f, 0.1f, 0.25f),
-                new (45f, 0.25f, 0.75f, 0.15f, 0.65f),
-                new (180f, 0.75f, 1.00f, 0.15f, 1.0f)
+                new (Constants.VisualGridSettings.ThinCellSize, 0.00f, 0.1f, 0.01f, 0.1f),
+                new (Constants.VisualGridSettings.MediumCellSize,  0.1f, 0.25f, 0.1f, 0.25f),
+                new (Constants.VisualGridSettings.ThickCellSize, 0.25f, 0.75f, 0.15f, 0.65f),
+                new (Constants.VisualGridSettings.GlobalCellSize, 0.75f, 1.00f, 0.15f, 1.0f)
             };
-
-            List<Vector3> vertices = new();
-            List<int> indices = new();
-            List<Color> colors = new();
 
             foreach (var level in gridLevels)
             {
@@ -213,28 +216,29 @@ namespace View.GameTable
 
                 for (float x = startX; x <= endX; x += cellSize)
                 {
-                    vertices.Add(new Vector3(x, startY));
-                    vertices.Add(new Vector3(x, endY));
-                    colors.Add(lineColor);
-                    colors.Add(lineColor);
-                    indices.Add(vertices.Count - 2);
-                    indices.Add(vertices.Count - 1);
+                    _vertices.Add(new Vector3(x, startY));
+                    _vertices.Add(new Vector3(x, endY));
+                    _colors.Add(lineColor);
+                    _colors.Add(lineColor);
+                    _indices.Add(_vertices.Count - 2);
+                    _indices.Add(_vertices.Count - 1);
                 }
 
                 for (float y = startY; y <= endY; y += cellSize)
                 {
-                    vertices.Add(new Vector3(startX, y));
-                    vertices.Add(new Vector3(endX, y));
-                    colors.Add(lineColor);
-                    colors.Add(lineColor);
-                    indices.Add(vertices.Count - 2);
-                    indices.Add(vertices.Count - 1);
+                    _vertices.Add(new Vector3(startX, y));
+                    _vertices.Add(new Vector3(endX, y));
+                    _colors.Add(lineColor);
+                    _colors.Add(lineColor);
+                    _indices.Add(_vertices.Count - 2);
+                    _indices.Add(_vertices.Count - 1);
                 }
             }
 
-            _mesh.SetVertices(vertices);
-            _mesh.SetIndices(indices.ToArray(), MeshTopology.Lines, 0);
-            _mesh.SetColors(colors);
+            _mesh.SetVertices(_vertices);
+            _mesh.SetIndices(_indices.ToArray(), MeshTopology.Lines, 0);
+            _mesh.SetColors(_colors);
+            _mesh.RecalculateBounds();
         }
 
         public void SnapCardToGridByWorldPosition(CardView cardView, Vector3 position)

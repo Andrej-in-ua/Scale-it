@@ -26,7 +26,7 @@ namespace UI.Game
 
         private readonly UICardFactory _uiCardFactory;
         private readonly UIGameFactory _uiFactory;
-        private readonly UIGridVisibilityButtonFactory _uiGridVisibilityButtonFactory;
+        private readonly UIVisualGridVisibilityButtonFactory _uiVisualGridVisibilityButtonFactory;
 
         private UIInventory _inventory;
         private Transform _inventoryPanel;
@@ -44,12 +44,12 @@ namespace UI.Game
         public UIGameMediator(
             UICardFactory uiCardFactory,
             UIGameFactory uiFactory,
-            UIGridVisibilityButtonFactory uiGridVisibilityButtonFactory
+            UIVisualGridVisibilityButtonFactory uiVisualGridVisibilityButtonFactory
         )
         {
             _uiCardFactory = uiCardFactory;
             _uiFactory = uiFactory;
-            _uiGridVisibilityButtonFactory = uiGridVisibilityButtonFactory;
+            _uiVisualGridVisibilityButtonFactory = uiVisualGridVisibilityButtonFactory;
         }
 
         public void ConstructUI()
@@ -63,8 +63,8 @@ namespace UI.Game
             _cardSpawner = _uiFactory.CreateCardSpawner(_inventory.gameObject.transform);
             _cardSpawner.OnCardSpawnRequested += SpawnCard;
 
-            _gridVisibilityButton = _uiGridVisibilityButtonFactory.Construct(_inventory.gameObject.transform);
-            _gridVisibilityButton.onClick.AddListener(() => OnGridVisibilityButtonClick?.Invoke(_gridVisibilityButton.transform.GetChild(0).GetComponent<TMP_Text>()));
+            _gridVisibilityButton = _uiVisualGridVisibilityButtonFactory.Construct(_inventory.gameObject.transform);
+            _gridVisibilityButton.onClick.AddListener(() => OnGridVisibilityButtonClick?.Invoke(_gridVisibilityButton.GetComponentInChildren<TMP_Text>()));
             
             var keys = Deck.Instance.cards.Keys.ToList().GetRange(1, 4);
             for (int i = 0; i < 10; i++)

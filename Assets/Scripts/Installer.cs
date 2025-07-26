@@ -37,7 +37,7 @@ public class Installer : MonoInstaller
     {
         Container.Bind<UICardFactory>().AsSingle();
         Container.Bind<UIGameFactory>().AsSingle();
-        Container.Bind<UIGridVisibilityButtonFactory>().AsSingle();
+        Container.Bind<UIVisualGridVisibilityButtonFactory>().AsSingle();
     }
 
     private void BindView()

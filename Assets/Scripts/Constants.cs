@@ -46,4 +46,12 @@ public class Constants
         public const int CellStep = 9;
         public const int ActiveChunkRange = 3;   
     }
+
+    public class VisualGridSettings
+    {
+        public const float ThinCellSize = 1f;
+        public const float MediumCellSize = 3f;
+        public const float ThickCellSize = 45f;
+        public const float GlobalCellSize = 180f;
+    }
 }
