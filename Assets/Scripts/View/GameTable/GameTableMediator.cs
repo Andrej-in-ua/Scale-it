@@ -182,7 +182,7 @@ namespace View.GameTable
             float bottom = camPos.y - camHeight / 2;
             float top = camPos.y + camHeight / 2;
 
-            var gridLevels = new List<GridLevel>
+            var gridLevels = new List<VisualGridLevel>
             {
                 new(1f, 0.00f, 0.1f, 0.01f, 0.1f),
                 new (3f,  0.1f, 0.25f, 0.1f, 0.25f),
@@ -469,56 +469,6 @@ namespace View.GameTable
         {
             if (!_isConstructed)
                 throw new Exception("GridView is not constructed");
-        }
-    }
-
-    public struct GridLevel
-    {
-        public float CellSize;      
-        public float FullStart;     
-        public float FullEnd;       
-        public float BlendRange;    
-        public float MaxAlpha;      
-
-        public GridLevel(
-            float cellSize,
-            float fullStart,
-            float fullEnd,
-            float blendRange,
-            float maxAlpha
-        )
-        {
-            CellSize    = cellSize;
-            FullStart   = fullStart;
-            FullEnd     = fullEnd;
-            BlendRange  = blendRange;
-            MaxAlpha    = maxAlpha;
-        }
-
-        public float GetAlpha(float zoom)
-        {
-            float blendStart = FullStart - BlendRange;
-            float blendEnd   = FullEnd   + BlendRange;
-            float alpha;
-
-            if (zoom < blendStart || zoom > blendEnd)
-            {
-                alpha = 0f;
-            }
-            else if (zoom >= FullStart && zoom <= FullEnd)
-            {
-                alpha = 1f;
-            }
-            else if (zoom < FullStart)
-            {
-                alpha = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(blendStart, FullStart, zoom));
-            }
-            else
-            {
-                alpha = Mathf.SmoothStep(1f, 0f, Mathf.InverseLerp(FullEnd, blendEnd, zoom));
-            }
-
-            return alpha * MaxAlpha;
         }
     }
 }
