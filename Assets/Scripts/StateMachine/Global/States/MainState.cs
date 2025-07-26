@@ -62,6 +62,7 @@ namespace StateMachine.Global.States
 
                 _inputService.Construct(camera);
                 _cameraMover.Construct(camera);
+                _cameraMover.SetInputBlocker(_uiGameMediator.IsCardSearchInputFocused);
 
                 _dragService.Construct();
 

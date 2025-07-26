@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Controllers;
 using DeckManager;
 using Services.Input;
+using TMPro;
 using UI.Game.CardPreviews;
 using UI.Game.DebugTools;
 using UI.Game.Inventory;
@@ -25,8 +27,11 @@ namespace UI.Game
 
         private UIInventory _inventory;
         private Transform _inventoryPanel;
-        private CardSpawner _cardSpawner;
         private Camera _camera;
+
+        private CardSpawner _cardSpawner;
+        private TMP_InputField _cardSearchInputField;
+        private string _previousCardSearchInput;
 
         private bool _isHoverInventory;
 
@@ -53,6 +58,8 @@ namespace UI.Game
 
             _cardSpawner = _uiFactory.CreateCardSpawner(_inventory.gameObject.transform);
             _cardSpawner.OnCardSpawnRequested += SpawnCard;
+            _cardSearchInputField = _cardSpawner.InputField;
+            _cardSearchInputField.onValueChanged.AddListener(_ => SearchCardsToSpawn());
 
             var keys = Deck.Instance.cards.Keys.ToList().GetRange(1, 4);
             for (int i = 0; i < 10; i++)
@@ -61,10 +68,49 @@ namespace UI.Game
             }
         }
 
+        private void SearchCardsToSpawn()
+        {
+            Transform content = _cardSpawner.Content;
+            GameObject scrollView = _cardSpawner.CardScrollView;
+            string input = _cardSpawner.InputField.text.ToLower();
+
+            if (input == _previousCardSearchInput) return;
+            _previousCardSearchInput = input;
+
+            if (string.IsNullOrEmpty(input))
+            {
+                scrollView.SetActive(false);
+                
+                foreach (Transform child in content)
+                    Object.Destroy(child.gameObject);
+                
+                return;
+            }
+
+            var foundCards = Deck.Instance.cards.Values
+                .Where(card =>
+                    card.name.ToLower().Contains(input) ||
+                    card.cardID.ToString().StartsWith(input))
+                .ToList();
+
+            foreach (Transform child in content)
+                Object.Destroy(child.gameObject);
+            
+            scrollView.SetActive(foundCards.Count > 0);
+
+            foreach (var card in foundCards)
+                _uiFactory.CreateCardSearchResultPanel(content, _cardSpawner, card.cardID, card.name);
+        }
+
         private void SpawnCard(int cardId)
         {
             var card = _uiCardFactory.CreateUICard(cardId, _inventoryPanel);
             _inventory.Put(card);
+        }
+        
+        public bool IsCardSearchInputFocused()
+        {
+            return _cardSearchInputField.isFocused;
         }
 
         public void HandleMouseMove(MouseContext mouseContext)
