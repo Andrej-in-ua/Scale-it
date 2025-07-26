@@ -4,7 +4,7 @@ public class Constants
     public const string InventoryPath = "Inventory";
     public const string UICardPreviewPath = "UICardPreviewPrefab";
     public const string CardSpawnerPath = "CardSpawner";
-    public const string GridVisibilityButtonPath = "GridVisibilityButtonPrefab";
+    public const string VisualGridVisibilityButtonPath = "VisualGridVisibilityButtonPrefab";
     
     // View
     public const string CardViewPath = "GameTable/CardViewPrefab";
@@ -13,7 +13,7 @@ public class Constants
     public const string ConnectionViewPath = "GameTable/ConnectionViewPrefab";
     public const string ConnectionsContainerPath = "GameTable/ConnectionsContainerPrefab";
 
-    public const string BuildGridPath = "GameTable/BuildGridPrefab";
+    public const string VisualGridPath = "GameTable/VisualGridPrefab";
     
     // Environment
     public const string TreeOneViewPath = "GameTable/Environment/TreeOneViewPrefab";

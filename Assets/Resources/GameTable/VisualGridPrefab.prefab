@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 5725428765426983602}
   - component: {fileID: 3779180104786795264}
   m_Layer: 0
-  m_Name: BuildGridPrefab
+  m_Name: VisualGridPrefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

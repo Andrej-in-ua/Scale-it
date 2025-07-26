@@ -13,7 +13,7 @@ public class UIGridVisibilityButtonFactory
 
     public Button Construct(Transform parent)
     {
-        GameObject button = Object.Instantiate(_assetProviderService.LoadAssetFromResources<GameObject>(Constants.GridVisibilityButtonPath), parent);
+        GameObject button = Object.Instantiate(_assetProviderService.LoadAssetFromResources<GameObject>(Constants.VisualGridVisibilityButtonPath), parent);
         
         return button.GetComponent<Button>();
     }

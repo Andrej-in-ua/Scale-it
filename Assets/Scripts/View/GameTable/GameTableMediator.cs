@@ -21,7 +21,7 @@ namespace View.GameTable
         private readonly CardViewPool _cardViewPool;
         private readonly ConnectionFactory _connectionFactory;
 
-        private readonly BuildGridFactory _buildGridFactory;
+        private readonly VisualGridFactory _visualGridFactory;
         private readonly IEnvironmentFactory _environmentFactory;
 
         private readonly Dictionary<Vector2Int, GameObject> _generatedChunks = new();
@@ -50,7 +50,7 @@ namespace View.GameTable
             GridManager gridManager,
             CardViewPool cardViewPool,
             ConnectionFactory connectionFactory,
-            BuildGridFactory buildGridFactory,
+            VisualGridFactory visualGridFactory,
             IEnvironmentFactory environmentFactory
         )
         {
@@ -58,7 +58,7 @@ namespace View.GameTable
             _cardViewPool = cardViewPool;
             _connectionFactory = connectionFactory;
             _environmentFactory = environmentFactory;
-            _buildGridFactory = buildGridFactory;
+            _visualGridFactory = visualGridFactory;
         }
 
         public void ConstructGameTable(Camera camera)
@@ -69,8 +69,8 @@ namespace View.GameTable
             _cardViewPool.Construct();
             _connectionsContainer = _connectionFactory.CreateConnectionsContainer();
 
-            (_mesh, _buildGrid) = _buildGridFactory.Construct();
-            DrawGrid();
+            (_mesh, _buildGrid) = _visualGridFactory.Construct();
+            DrawVisualGrid();
 
             _environmentFactory.LoadAssets();
             _environmentContainer = new GameObject("Environment Container").transform;
@@ -167,14 +167,16 @@ namespace View.GameTable
             return chunkRoot;
         }
 
-        private void DrawGrid()
+        private void DrawVisualGrid()
         {
             _mesh.Clear();
 
             float zoom = Mathf.InverseLerp(Constants.CameraSettings.ZoomMin, Constants.CameraSettings.ZoomMax,
                 _camera.orthographicSize);
+            
             float camWidth = _camera.orthographicSize * _camera.aspect * 2f;
             float camHeight = _camera.orthographicSize * 2f;
+            
             Vector3 camPos = _camera.transform.position;
 
             float left = camPos.x - camWidth / 2;
@@ -268,7 +270,7 @@ namespace View.GameTable
 
         public void OnCameraChanged(Transform cameraPosition)
         {
-            DrawGrid();
+            DrawVisualGrid();
             UpdateEnvironmentAround(cameraPosition.position);
         }
 

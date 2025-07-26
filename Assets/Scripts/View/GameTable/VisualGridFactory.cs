@@ -1,14 +1,13 @@
 using UnityEngine;
-using System.Collections.Generic;
 using Services;
 
 namespace View.GameTable
 {
-    public class BuildGridFactory
+    public class VisualGridFactory
     {
         private readonly IAssetProviderService _assetProviderService;
 
-        public BuildGridFactory(IAssetProviderService assetProviderService)
+        public VisualGridFactory(IAssetProviderService assetProviderService)
         {
             _assetProviderService = assetProviderService;
         }
@@ -16,7 +15,7 @@ namespace View.GameTable
         public (Mesh, GameObject) Construct()
         {
             Mesh mesh = new Mesh();
-            GameObject gridPrefab = Object.Instantiate(_assetProviderService.LoadAssetFromResources<GameObject>(Constants.BuildGridPath));
+            GameObject gridPrefab = Object.Instantiate(_assetProviderService.LoadAssetFromResources<GameObject>(Constants.VisualGridPath));
             gridPrefab.transform.position = new Vector2(-1, -1);
             gridPrefab.gameObject.GetComponent<MeshFilter>().mesh = mesh;
 
