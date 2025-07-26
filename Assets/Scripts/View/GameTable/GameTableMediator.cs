@@ -184,16 +184,10 @@ namespace View.GameTable
 
             var gridLevels = new List<GridLevel>
             {
-                new GridLevel(
-                    cellSize:    1f,
-                    fullStart:   0.00f,
-                    fullEnd:     0.1f,
-                    blendRange:  0.05f,
-                    maxAlpha:    0.1f   
-                ),
-                new GridLevel(3f,  0.1f, 0.25f, 0.15f, 0.2f),
-                new GridLevel(45f, 0.25f, 0.75f, 0.15f, 0.6f),
-                new GridLevel(180f, 0.75f, 1.00f, 0.15f, 1.0f)
+                new(1f, 0.00f, 0.1f, 0.01f, 0.1f),
+                new (3f,  0.1f, 0.25f, 0.1f, 0.25f),
+                new (45f, 0.25f, 0.75f, 0.15f, 0.65f),
+                new (180f, 0.75f, 1.00f, 0.15f, 1.0f)
             };
 
             List<Vector3> vertices = new();
