@@ -10,6 +10,8 @@ namespace Services
     {
         public event Action<Transform> OnCameraMove;
         
+        private Func<bool> _inputBlockedCallback;
+        
         private readonly InputService _inputService;
         private Camera _camera;
 
@@ -40,6 +42,11 @@ namespace Services
             _inputService.OnMouseScroll += HandleMouseScroll;
         }
 
+        public void SetInputBlocker(Func<bool> callback)
+        {
+            _inputBlockedCallback = callback;
+        }
+        
         #region Camera Scroll
         public void Tick()
         {
@@ -87,6 +94,9 @@ namespace Services
 
         private void HandleKeyboardMoveStart(KeyboardContext context)
         {
+            if (_inputBlockedCallback != null && _inputBlockedCallback.Invoke())
+                return;
+
             _moveDirection = context.GetMoveDirection();
             _isMoving = true;
         }
@@ -100,6 +110,9 @@ namespace Services
         #region Camera Zoom
         private void HandleMouseScroll(MouseContext context)
         {
+            if (_inputBlockedCallback != null && _inputBlockedCallback.Invoke())
+                return;
+            
             var scrollValue = context.GetMouseScroll();
             if (Mathf.Abs(scrollValue) > 0.01f)
             {

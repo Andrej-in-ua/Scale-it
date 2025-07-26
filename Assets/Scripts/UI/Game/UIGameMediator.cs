@@ -107,6 +107,11 @@ namespace UI.Game
             var card = _uiCardFactory.CreateUICard(cardId, _inventoryPanel);
             _inventory.Put(card);
         }
+        
+        public bool IsCardSearchInputFocused()
+        {
+            return _cardSearchInputField.isFocused;
+        }
 
         public void HandleMouseMove(MouseContext mouseContext)
         {
