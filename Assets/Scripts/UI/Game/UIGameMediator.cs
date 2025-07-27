@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Controllers;
 using DeckManager;
@@ -26,7 +25,7 @@ namespace UI.Game
         private readonly UIGameFactory _uiFactory;
 
         private UIInventory _inventory;
-        private Transform _inventoryPanel;
+        private RectTransform _inventoryPanel;
         private Camera _camera;
 
         private CardSpawner _cardSpawner;
@@ -54,7 +53,7 @@ namespace UI.Game
 
             _camera = Camera.main;
             _inventory = _uiFactory.CreateInventory();
-            _inventoryPanel = _inventory.transform.GetChild(0).transform;
+            _inventoryPanel = _inventory.transform.GetChild(0).GetComponent<RectTransform>();
 
             _cardSpawner = _uiFactory.CreateCardSpawner(_inventory.gameObject.transform);
             _cardSpawner.OnCardSpawnRequested += SpawnCard;
@@ -104,7 +103,7 @@ namespace UI.Game
 
         private void SpawnCard(int cardId)
         {
-            var card = _uiCardFactory.CreateUICard(cardId, _inventoryPanel);
+            var card = _uiCardFactory.CreateUICard(cardId, _inventoryPanel.transform);
             _inventory.Put(card);
         }
         
@@ -112,11 +111,16 @@ namespace UI.Game
         {
             return _cardSearchInputField.isFocused;
         }
+        
+        public bool IsHoveringInventory()
+        {
+            return _isHoverInventory;
+        }
 
         public void HandleMouseMove(MouseContext mouseContext)
         {
             var isCurrentHoverInventory = RectTransformUtility.RectangleContainsScreenPoint(
-                _inventory._bottomPanel,
+                _inventoryPanel,
                 mouseContext.GetMouseScreenPosition(),
                 _camera
             );
@@ -148,7 +152,7 @@ namespace UI.Game
                 }
 
                 _isTaken = true;
-                _draggableCardPreview = _uiCardFactory.CreateUICard(uiCardPreview.CardId, _inventoryPanel);
+                _draggableCardPreview = _uiCardFactory.CreateUICard(uiCardPreview.CardId, _inventoryPanel.transform);
             }
             else
             {
@@ -177,7 +181,7 @@ namespace UI.Game
                     throw new Exception("Draggable is not CardView or UICardPreview: " +
                                         context.Draggable.GetType().Name);
 
-                _draggableCardPreview = _uiCardFactory.CreateUICard(cardView.CardId, _inventoryPanel);
+                _draggableCardPreview = _uiCardFactory.CreateUICard(cardView.CardId, _inventoryPanel.transform);
             }
 
             var position = context.WorldMousePosition;
