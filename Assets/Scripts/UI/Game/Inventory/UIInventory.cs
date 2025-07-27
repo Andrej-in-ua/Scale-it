@@ -8,7 +8,7 @@ namespace UI.Game.Inventory
 {
     public class UIInventory : MonoBehaviour
     {
-        public RectTransform _bottomPanel;
+        public RectTransform CardsWindow;
 
         [SerializeField] private Canvas _canvas;
 
@@ -42,7 +42,7 @@ namespace UI.Game.Inventory
             {
                 _cardsQuantity[card.CardId] = 1;
                 _cardPreviews.Add(card.CardId, card);
-                card.transform.SetParent(_bottomPanel.transform);
+                card.transform.SetParent(CardsWindow.transform);
             }
             else
             {
@@ -78,7 +78,7 @@ namespace UI.Game.Inventory
                 }
             }
 
-            LayoutRebuilder.MarkLayoutForRebuild(_bottomPanel);
+            LayoutRebuilder.MarkLayoutForRebuild(CardsWindow);
         }
     }
 }

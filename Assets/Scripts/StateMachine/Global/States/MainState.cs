@@ -63,7 +63,8 @@ namespace StateMachine.Global.States
                 _inputService.Construct(camera);
                 _cameraMover.Construct(camera);
                 _cameraMover.SetInputBlocker(_uiGameMediator.IsCardSearchInputFocused);
-
+                _cameraMover.SetZoomBlocker(_uiGameMediator.IsHoveringInventory);
+                
                 _dragService.Construct();
 
                 SceneManager.sceneLoaded -= OnSceneLoaded;

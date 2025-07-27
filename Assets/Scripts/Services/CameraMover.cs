@@ -11,6 +11,7 @@ namespace Services
         public event Action<Transform> OnCameraMove;
         
         private Func<bool> _inputBlockedCallback;
+        private Func<bool> _zoomBlockedCallback;
         
         private readonly InputService _inputService;
         private Camera _camera;
@@ -45,6 +46,11 @@ namespace Services
         public void SetInputBlocker(Func<bool> callback)
         {
             _inputBlockedCallback = callback;
+        }
+
+        public void SetZoomBlocker(Func<bool> callback)
+        {
+            _zoomBlockedCallback = callback;
         }
         
         #region Camera Scroll
@@ -110,7 +116,10 @@ namespace Services
         #region Camera Zoom
         private void HandleMouseScroll(MouseContext context)
         {
-            if (_inputBlockedCallback != null && _inputBlockedCallback.Invoke())
+            // if (_inputBlockedCallback != null && _inputBlockedCallback.Invoke())
+            //     return;
+
+            if (_zoomBlockedCallback != null && _zoomBlockedCallback.Invoke())
                 return;
             
             var scrollValue = context.GetMouseScroll();
